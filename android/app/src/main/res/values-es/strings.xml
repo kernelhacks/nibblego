@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="your_technician">tu técnico</string>
+
+    <string name="code_title">Ingresa tu código de sesión</string>
+    <string name="code_hint">Tu técnico te dio un código de 9 dígitos.</string>
+    <string name="code_label">Código de sesión</string>
+    <string name="continue_btn">Continuar</string>
+    <string name="code_invalid">El código tiene 9 dígitos.</string>
+    <string name="loading">Cargando…</string>
+
+    <string name="err_not_found_title">Este enlace no es válido</string>
+    <string name="err_not_found">Revisa que el enlace esté completo o pide uno nuevo a tu técnico.</string>
+    <string name="err_expired_title">Este enlace caducó</string>
+    <string name="err_expired">Por seguridad, los enlaces duran poco tiempo. Pide uno nuevo a tu técnico.</string>
+    <string name="err_ended_title">Esta sesión ya terminó</string>
+    <string name="err_ended">Si necesitas más ayuda, pide un enlace nuevo a tu técnico.</string>
+    <string name="err_network_title">Sin conexión</string>
+    <string name="err_network">No se pudo conectar. Revisa tu conexión a internet e inténtalo de nuevo.</string>
+    <string name="err_replaced_title">La sesión se abrió en otro lugar</string>
+    <string name="err_replaced">Esta sesión continuó en otro dispositivo o ventana.</string>
+    <string name="retry">Reintentar</string>
+    <string name="other_code">Usar otro código</string>
+
+    <string name="terms_title">Sesión de soporte con %1$s</string>
+    <string name="terms_lede">%1$s solo verá tu pantalla mientras la compartes y podrá señalarte dónde tocar. No puede controlar tu teléfono.</string>
+    <string name="terms_heading">Términos del servicio</string>
+    <string name="name_label">Tu nombre completo</string>
+    <string name="agree_label">Leí y acepto los términos del servicio.</string>
+    <string name="accept_btn">Aceptar y continuar</string>
+    <string name="err_name">Escribe tu nombre completo.</string>
+    <string name="err_agree">Para continuar, marca la casilla de aceptación.</string>
+    <string name="err_terms_changed">Los términos se actualizaron. Revísalos y acéptalos de nuevo.</string>
+
+    <string name="marks_title">Permite que %1$s te señale en la pantalla</string>
+    <string name="marks_body">Para ver las marcas de %1$s sobre tu pantalla, permite que Nibbletec Assist se muestre sobre otras apps. Android abrirá un ajuste: activa el interruptor y vuelve aquí.</string>
+    <string name="marks_allow">Permitir</string>
+    <string name="marks_skip">Ahora no</string>
+
+    <string name="ready_title">Todo listo, %1$s</string>
+    <string name="share_btn">Compartir mi pantalla</string>
+    <string name="share_hint">Android te pedirá confirmación. Si te pregunta qué compartir, elige “Pantalla completa” para que %1$s te siga entre apps.</string>
+    <string name="share_cancelled">No se compartió nada. Puedes intentarlo de nuevo cuando quieras.</string>
+    <string name="share_failed">No se pudo compartir la pantalla. Inténtalo de nuevo.</string>
+
+    <string name="sharing_title">Compartiendo tu pantalla con %1$s</string>
+    <string name="sharing_waiting">Compartiendo. %1$s verá tu pantalla en cuanto se conecte.</string>
+    <string name="sharing_body">Puedes salir de esta app y usar tu teléfono normalmente. %1$s verá lo que haces y te guiará.</string>
+    <string name="marks_on">Las marcas de %1$s aparecen sobre tu pantalla.</string>
+    <string name="marks_off">Las marcas están desactivadas. Actívalas para ver dónde te señala %1$s.</string>
+    <string name="marks_enable">Activar marcas</string>
+    <string name="stop_btn">Dejar de compartir</string>
+    <string name="stopped_toast">Dejaste de compartir tu pantalla.</string>
+
+    <string name="ended_title">Sesión finalizada</string>
+    <string name="ended_body">Ya no se está compartiendo tu pantalla. Puedes cerrar esta app.</string>
+
+    <string name="snapshot_toast">%1$s tomó una captura de tu pantalla compartida para documentar el caso.</string>
+    <string name="notif_channel">Compartir pantalla</string>
+    <string name="notif_title">Compartiendo tu pantalla</string>
+    <string name="notif_text">Con %1$s. Toca para abrir.</string>
+    <string name="notif_stop">Detener</string>
+    <string name="pill_sharing">Compartiendo</string>
+    <string name="pill_stop">Detener</string>
+</resources>

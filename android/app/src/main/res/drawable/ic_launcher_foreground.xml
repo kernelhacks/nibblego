@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Marco de selección con un punto: el mismo símbolo de la web. Zona segura: 66dp centrales. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M36,46V40A4,4 0 0,1 40,36H46M62,36H68A4,4 0 0,1 72,40V46M72,62V68A4,4 0 0,1 68,72H62M46,72H40A4,4 0 0,1 36,68V62"
+        android:strokeWidth="4"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M54,54m-7,0a7,7 0 1,1 14,0a7,7 0 1,1 -14,0"
+        android:fillColor="#FF3D57" />
+</vector>

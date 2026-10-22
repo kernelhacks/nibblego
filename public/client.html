@@ -124,6 +124,37 @@
       </div>
     </section>
 
+    <!-- Android: abrir o instalar la app -->
+    <section class="screen narrow" data-screen="app" hidden>
+      <h1 data-i18n="termsTitle">Sesión de soporte</h1>
+      <p class="lede" data-i18n="appLede"></p>
+      <div id="app-available">
+        <a class="btn primary big wide-btn" id="open-app-btn" href="#">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>
+          <span data-i18n="appOpen">Abrir la app</span>
+        </a>
+        <p class="hint" data-i18n="appOpenHint"></p>
+        <div class="panel install" id="install-panel">
+          <h2 data-i18n="appInstallTitle"></h2>
+          <ol class="steps">
+            <li data-i18n="appStep1"></li>
+            <li data-i18n="appStep2"></li>
+            <li data-i18n="appStep3"></li>
+          </ol>
+          <a class="btn wide-btn" id="download-app-btn" href="/app/android" data-i18n="appDownload">Descargar la app</a>
+        </div>
+      </div>
+      <div class="notice" id="app-unavailable" hidden>
+        <h2 data-i18n="appUnavailableTitle"></h2>
+        <p data-i18n="appUnavailable"></p>
+      </div>
+      <div class="cb-alt" data-cb-entry hidden>
+        <p class="hint" data-i18n="appWebHint"></p>
+        <button class="btn wide-btn" type="button" id="app-web-btn" data-i18n="appWebBtn">Continuar en el navegador</button>
+      </div>
+      <p class="meta"><span data-i18n="sessionCode">Código de sesión</span> <strong class="code-digits" data-code></strong></p>
+    </section>
+
     <!-- Listo para compartir -->
     <section class="screen narrow" data-screen="ready" hidden>
       <h1 data-i18n="readyTitle">Todo listo</h1>

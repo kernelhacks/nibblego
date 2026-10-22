@@ -63,6 +63,11 @@ const COBROWSE_MAX = clampInt(env.COBROWSE_MAX, 1, 50, 3);
 const COBROWSE_IDLE_MIN = clampInt(env.COBROWSE_IDLE_MIN, 1, 240, 15);
 const COBROWSE_PROXY_PORT = clampInt(env.COBROWSE_PROXY_PORT, 1, 65535, 3128);
 const COBROWSE_PORTS = list(env.COBROWSE_PORTS || '80,443,8080,8443').map(Number).filter((n) => n > 0 && n < 65536);
+// App Android: paquete, huella del certificado (para abrir enlaces directo en la app) y APK
+const ANDROID_PACKAGE = env.ANDROID_PACKAGE || 'com.nibbletec.assist';
+const ANDROID_CERT_SHA256 = list(env.ANDROID_CERT_SHA256).map((s) => s.toUpperCase());
+const ANDROID_APK_URL = env.ANDROID_APK_URL || '';
+const APK_FILE = path.join(DATA_DIR, 'nibbletec-assist.apk');
 
 let SESSION_SECRET = env.SESSION_SECRET;
 if (!SESSION_SECRET) {
@@ -276,6 +281,7 @@ function techView(s) {
     client: clientInfo(s),
     sharing: s.sharing,
     pipOpen: s.pipOpen,
+    pipMode: s.pipMode || '',
     techConnected: !!s.ws.tech,
     clientConnected: !!s.ws.client,
     cobrowse: cobrowse.summary(s),
@@ -402,11 +408,46 @@ app.get('/', page('client.html'));
 app.get('/s/:code', page('client.html'));
 app.get('/tech', page('tech.html'));
 app.get('/healthz', (req, res) => res.json({ ok: true, sessions: sessions.size }));
+
+// ---- App Android ----
+function androidInfo() {
+  const base = { package: ANDROID_PACKAGE };
+  if (ANDROID_APK_URL) return { ...base, available: true, url: ANDROID_APK_URL };
+  try {
+    const st = fs.statSync(APK_FILE);
+    return { ...base, available: true, url: '/app/android', size: st.size, updatedAt: st.mtime.toISOString() };
+  } catch {
+    return { ...base, available: false };
+  }
+}
+
+// Permite que Android abra los enlaces /s/... directamente en la app (App Links).
+app.get('/.well-known/assetlinks.json', (req, res) => {
+  res.json(
+    ANDROID_CERT_SHA256.length
+      ? [
+          {
+            relation: ['delegate_permission/common.handle_all_urls'],
+            target: { namespace: 'android_app', package_name: ANDROID_PACKAGE, sha256_cert_fingerprints: ANDROID_CERT_SHA256 },
+          },
+        ]
+      : []
+  );
+});
+
+app.get('/app/android', (req, res) => {
+  if (ANDROID_APK_URL) return res.redirect(302, ANDROID_APK_URL);
+  if (!fs.existsSync(APK_FILE)) return res.status(404).type('text/plain').send('La app aún no está disponible.');
+  res.setHeader('Content-Type', 'application/vnd.android.package-archive');
+  res.setHeader('Content-Disposition', 'attachment; filename="nibbletec-assist.apk"');
+  res.setHeader('Cache-Control', 'no-cache');
+  fs.createReadStream(APK_FILE).pipe(res);
+});
 app.use('/fonts', express.static(path.join(PUB, 'fonts'), { maxAge: '30d', immutable: true }));
 app.use(express.static(PUB, { index: false, maxAge: 0 }));
 
 // ---- API pública (cliente) ----
-app.get('/api/config', (req, res) => res.json({ brand: BRAND_NAME }));
+app.get('/api/config', (req, res) => res.json({ brand: BRAND_NAME, android: androidInfo() }));
 
 app.get('/api/s/:code', lookupLimiter, (req, res) => {
   const s = getSession(req.params.code);
@@ -414,7 +455,16 @@ app.get('/api/s/:code', lookupLimiter, (req, res) => {
   if (err) return res.status(err === 'not_found' ? 404 : 410).json({ error: err });
   const terms = {};
   for (const l of LANGS) terms[l] = getTerms(l);
-  res.json({ code: s.code, brand: BRAND_NAME, techName: s.techName, lang: s.lang, linkExpiresAt: s.linkExpiresAt, terms, cobrowse: cobrowse.enabled });
+  res.json({
+    code: s.code,
+    brand: BRAND_NAME,
+    techName: s.techName,
+    lang: s.lang,
+    linkExpiresAt: s.linkExpiresAt,
+    terms,
+    cobrowse: cobrowse.enabled,
+    android: androidInfo(),
+  });
 });
 
 app.post('/api/s/:code/accept', lookupLimiter, (req, res) => {
@@ -556,6 +606,23 @@ app.get('/api/audit', requireTech, async (req, res, next) => {
   }
 });
 
+// El técnico sube el APK desde la consola; queda en el volumen de datos.
+app.post('/api/app/android', requireTech, express.raw({ type: () => true, limit: '200mb' }), async (req, res, next) => {
+  try {
+    const buf = req.body;
+    if (!Buffer.isBuffer(buf) || buf.length < 1024 || buf[0] !== 0x50 || buf[1] !== 0x4b) {
+      return res.status(400).json({ error: 'not_apk' });
+    }
+    const tmp = `${APK_FILE}.tmp`;
+    await fsp.writeFile(tmp, buf);
+    await fsp.rename(tmp, APK_FILE);
+    audit('app_uploaded', { platform: 'android', size: buf.length, sha256: sha256(buf).toString('hex'), techUser: req.tech.user });
+    res.json(androidInfo());
+  } catch (e) {
+    next(e);
+  }
+});
+
 app.use('/api', (req, res) => res.status(404).json({ error: 'not_found' }));
 app.use((err, req, res, next) => {
   console.error(err);
@@ -659,10 +726,20 @@ function handleMessage(ws, m) {
       if (isTech) return;
       const sharing = !!m.sharing;
       const info = sharing
-        ? { w: clampInt(m.w, 0, 16384, 0), h: clampInt(m.h, 0, 16384, 0), surface: cleanText(m.surface, 20) || 'unknown' }
+        ? {
+            w: clampInt(m.w, 0, 16384, 0),
+            h: clampInt(m.h, 0, 16384, 0),
+            surface: cleanText(m.surface, 20) || 'unknown',
+            device: cleanText(m.device, 60) || undefined,
+          }
         : null;
       if (sharing !== !!s.sharing) {
-        audit(sharing ? 'sharing_started' : 'sharing_stopped', { code: s.code, surface: info?.surface, reason: sharing ? undefined : 'client' });
+        audit(sharing ? 'sharing_started' : 'sharing_stopped', {
+          code: s.code,
+          surface: info?.surface,
+          device: info?.device,
+          reason: sharing ? undefined : 'client',
+        });
       }
       s.sharing = info;
       if (!sharing) s.pipOpen = false;
@@ -671,7 +748,8 @@ function handleMessage(ws, m) {
     case 'pip': {
       if (isTech) return;
       s.pipOpen = !!m.open;
-      return send(other, { t: 'pip', open: s.pipOpen, mode: cleanText(m.mode, 20) });
+      s.pipMode = cleanText(m.mode, 20);
+      return send(other, { t: 'pip', open: s.pipOpen, mode: s.pipMode });
     }
     case 'caption': {
       if (!isTech) return;

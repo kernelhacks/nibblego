@@ -16,6 +16,9 @@ services:
       TURN_SECRET: ${TURN_SECRET:?}
       WEBHOOK_URL: ${WEBHOOK_URL:-}
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+      ANDROID_PACKAGE: ${ANDROID_PACKAGE:-com.nibbletec.assist}
+      ANDROID_CERT_SHA256: ${ANDROID_CERT_SHA256:-}
+      ANDROID_APK_URL: ${ANDROID_APK_URL:-}
       # Navegador compartido. Vacío = desactivado.
       COBROWSE_URL: ${COBROWSE_URL-http://browser:9223}
       COBROWSE_MAX: ${COBROWSE_MAX:-3}

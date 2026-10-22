@@ -157,6 +157,16 @@ input[type="text"]:focus-visible { outline-offset: 0; border-color: var(--focus)
 .notice.tight h2 { font-size: 1rem; }
 .notice.tight p { font-size: 0.93rem; }
 
+/* ---- Android: abrir o instalar la app ---- */
+.wide-btn { width: 100%; margin-top: 28px; text-decoration: none; }
+.install { margin-top: 32px; }
+.install .wide-btn { margin-top: 20px; min-height: 52px; }
+.install.attention { border-color: var(--go); box-shadow: 0 0 0 3px rgba(14, 107, 86, 0.18); }
+.steps { margin: 14px 0 0; padding-left: 1.4em; display: grid; gap: 8px; color: var(--ink-2); }
+.steps li::marker { font-weight: 700; color: var(--ink); }
+.cb-alt { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); }
+.cb-alt .wide-btn { margin-top: 14px; }
+
 /* ---- Compartiendo ---- */
 .share-bar {
   display: flex;

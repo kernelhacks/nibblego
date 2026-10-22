@@ -31,8 +31,9 @@ const EVENTS = {
   cobrowse_control_revoked: 'Retiró el control',
   cobrowse_ended: 'Cerró el navegador compartido',
   cobrowse_blocked: 'Dirección bloqueada',
+  app_uploaded: 'App Android subida',
 };
-const SURFACES = { monitor: 'Pantalla completa', window: 'Ventana', browser: 'Pestaña' };
+const SURFACES = { monitor: 'Pantalla completa', window: 'Ventana', browser: 'Pestaña', mobile: 'Celular' };
 const REASONS = {
   client: 'lo detuvo el cliente',
   disconnected: 'se perdió la conexión',
@@ -119,6 +120,7 @@ function showView(name) {
   clearInterval(st.dashTimer);
   if (name === 'dash') {
     refreshDash();
+    refreshApp();
     st.dashTimer = setInterval(refreshDash, 5000);
   }
   if (name === 'login') setTimeout(() => $('#login-user').focus(), 0);
@@ -244,6 +246,43 @@ async function refreshDash() {
   }
 }
 
+// ---- App Android: estado y subida del APK ----
+async function refreshApp() {
+  try {
+    const { android } = await fetch('/api/config').then((r) => r.json());
+    const el = $('#apk-status');
+    if (android?.available) {
+      const size = android.size ? ` · ${(android.size / 1048576).toFixed(1)} MB` : '';
+      const when = android.updatedAt ? `Subida el ${fmtDateTime(android.updatedAt)}${size}` : 'Publicada en un enlace externo';
+      el.textContent = `Disponible para los clientes. ${when}.`;
+    } else {
+      el.textContent = 'Todavía no hay APK. Súbelo para que los clientes con Android puedan instalar la app.';
+    }
+    $('#apk-link').hidden = !android?.available;
+  } catch {
+    /* se reintenta luego */
+  }
+}
+
+$('#apk-input').addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+  $('#apk-status').textContent = 'Subiendo…';
+  try {
+    const res = await fetch('/api/app/android', {
+      method: 'POST',
+      headers: { 'content-type': 'application/vnd.android.package-archive' },
+      body: file,
+    });
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || res.status);
+    toast('APK publicado. Los clientes ya pueden descargarlo.');
+  } catch (ex) {
+    toast(ex.message === 'not_apk' ? 'Ese archivo no es un APK.' : 'No se pudo subir el APK.');
+  }
+  refreshApp();
+});
+
 $('#sessions-table').addEventListener('click', async (e) => {
   const b = e.target.closest('[data-end]');
   if (!b) return;
@@ -355,7 +394,7 @@ function onMessage(m) {
     case 'share':
       if (m.sharing) {
         const changed = !st.share || st.share.w !== m.w || st.share.h !== m.h;
-        st.share = { w: m.w, h: m.h, surface: m.surface };
+        st.share = { w: m.w, h: m.h, surface: m.surface, device: m.device };
         if (changed) st.vp = null;
       } else {
         st.share = null;
@@ -477,7 +516,11 @@ function renderSession() {
 
   setPill('#pill-client', st.clientPresent ? 'Cliente conectado' : c ? 'Cliente desconectado' : 'Sin aceptar términos', st.clientPresent ? 'ok' : 'wait');
   setPill('#pill-share', st.share ? `Compartiendo: ${SURFACES[st.share.surface] || 'pantalla'}` : 'Sin compartir', st.share ? 'live' : 'off');
-  setPill('#pill-pip', st.pipOpen ? 'Ventana flotante abierta' : 'Ventana flotante cerrada', st.pipOpen ? 'ok' : 'off');
+  const mobile = st.share?.surface === 'mobile';
+  const pipText = mobile
+    ? st.pipOpen ? 'Marcas visibles en su pantalla' : 'Marcas desactivadas'
+    : st.pipOpen ? 'Ventana flotante abierta' : 'Ventana flotante cerrada';
+  setPill('#pill-pip', pipText, st.pipOpen ? 'ok' : 'off');
 
   // Mensaje del escenario cuando no hay imagen
   let msg = '';
@@ -489,10 +532,11 @@ function renderSession() {
   $('#stage-empty-text').textContent = msg;
   $('#stage-empty').hidden = !msg;
 
-  $('#pip-note').textContent =
-    st.share && !st.pipOpen
-      ? 'El cliente no ha abierto la ventana flotante: solo verá tus marcas si mira la pestaña de soporte. Pídele que pulse "Abrir ventana flotante".'
-      : '';
+  $('#pip-note').textContent = !st.share || st.pipOpen
+    ? ''
+    : mobile
+      ? 'El cliente no permitió "Mostrar sobre otras apps", así que no verá tus marcas. Guíalo por voz o pídele que lo active desde la app.'
+      : 'El cliente no ha abierto la ventana flotante: solo verá tus marcas si mira la pestaña de soporte. Pídele que pulse "Abrir ventana flotante".';
 
   const kv = (rows) => rows.filter(([, v]) => v).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
   $('#client-kv').innerHTML = c
@@ -501,6 +545,7 @@ function renderSession() {
         ['Aceptó', fmtDateTime(c.acceptedAt)],
         ['IP', c.ip],
         ['Idioma', c.lang === 'en' ? 'English' : 'Español'],
+        ['Equipo', st.share?.device],
         ['Términos', c.termsVersion],
       ])
     : '<dt>Estado</dt><dd>Aún no acepta los términos</dd>';

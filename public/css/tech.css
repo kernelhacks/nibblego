@@ -68,7 +68,9 @@ body.tech input:focus-visible, body.tech select:focus-visible, body.tech textare
   max-width: 1500px;
   margin: 0 auto;
 }
-.new-session { grid-area: new; position: sticky; top: 24px; }
+.dash-left { grid-area: new; display: grid; gap: 20px; position: sticky; top: 24px; }
+.app-status { margin-top: 8px; color: var(--t-muted); font-size: 0.9rem; }
+.file-btn { cursor: pointer; }
 .sessions { grid-area: sessions; }
 .audit { grid-area: audit; }
 .t-card { background: var(--t-panel); border: 1px solid var(--t-line); border-radius: 14px; padding: 20px 22px; }
@@ -95,7 +97,7 @@ body.tech input:focus-visible, body.tech select:focus-visible, body.tech textare
 
 @media (max-width: 900px) {
   .dash { grid-template-columns: 1fr; grid-template-areas: "new" "sessions" "audit"; padding: 16px; }
-  .new-session { position: static; }
+  .dash-left { position: static; }
 }
 
 /* ---- Sesión en vivo ---- */

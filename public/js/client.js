@@ -102,6 +102,18 @@ const STR = {
     cbBlocked: 'Esa dirección está bloqueada por seguridad: el navegador compartido no puede abrir redes privadas ni direcciones internas.',
     cbUnreachable: 'No se pudo abrir esa página. Puede que no esté disponible o que sea una dirección interna, que está bloqueada por seguridad.',
     cbClosedToast: 'Se cerró el navegador compartido.',
+    appLede: '{tech} necesita ver la pantalla de tu celular. Para eso usa la app gratuita {brand} Assist: solo le permite ver tu pantalla y señalarte dónde tocar, nunca controlar tu teléfono.',
+    appOpen: 'Abrir la app',
+    appOpenHint: 'Si todavía no la tienes, abajo te explicamos cómo instalarla.',
+    appInstallTitle: '¿Primera vez? Instala la app',
+    appStep1: 'Toca Descargar la app.',
+    appStep2: 'Abre el archivo descargado y toca Instalar. Si Android lo pide, permite instalar apps desde tu navegador.',
+    appStep3: 'Vuelve a esta página y toca Abrir la app.',
+    appDownload: 'Descargar la app',
+    appUnavailableTitle: 'La app aún no está disponible',
+    appUnavailable: 'Por ahora, abre este enlace en una computadora con Chrome, Edge, Firefox o Safari.',
+    appWebHint: '¿Solo necesitas ayuda con una página web? Puedes usar el navegador compartido sin instalar nada.',
+    appWebBtn: 'Continuar en el navegador',
   },
   en: {
     pageTitle: 'Remote support · {brand}',
@@ -200,6 +212,18 @@ const STR = {
     cbBlocked: 'That address is blocked for security reasons: the shared browser can’t open private networks or internal addresses.',
     cbUnreachable: 'That page couldn’t be opened. It may be unavailable, or it may be an internal address, which is blocked for security reasons.',
     cbClosedToast: 'The shared browser was closed.',
+    appLede: '{tech} needs to see your phone’s screen. For that, use the free {brand} Assist app: it only lets them see your screen and point to where you should tap. It can never control your phone.',
+    appOpen: 'Open the app',
+    appOpenHint: 'If you don’t have it yet, see below how to install it.',
+    appInstallTitle: 'First time? Install the app',
+    appStep1: 'Tap Download the app.',
+    appStep2: 'Open the downloaded file and tap Install. If Android asks, allow installing apps from your browser.',
+    appStep3: 'Come back to this page and tap Open the app.',
+    appDownload: 'Download the app',
+    appUnavailableTitle: 'The app isn’t available yet',
+    appUnavailable: 'For now, open this link on a computer with Chrome, Edge, Firefox, or Safari.',
+    appWebHint: 'Only need help with a web page? You can use the shared browser without installing anything.',
+    appWebBtn: 'Continue in the browser',
   },
 };
 
@@ -227,7 +251,8 @@ const store = {
 
 const DOC_PIP = 'documentPictureInPicture' in window;
 const VIDEO_PIP = !DOC_PIP && !!document.pictureInPictureEnabled;
-const IS_MOBILE = navigator.userAgentData?.mobile === true || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const IS_ANDROID = navigator.userAgentData?.platform === 'Android' || /Android/i.test(navigator.userAgent);
+const IS_MOBILE = IS_ANDROID || navigator.userAgentData?.mobile === true || /iPhone|iPad|iPod/i.test(navigator.userAgent);
 const CAN_SHARE = !!navigator.mediaDevices?.getDisplayMedia && !IS_MOBILE;
 
 const st = {
@@ -261,6 +286,7 @@ const st = {
   ptrAnchor: null,
   ptrHiddenAt: 0,
   pip: null,
+  webOnly: false,
   cbEnabled: false,
   cb: { open: false },
   cbRequest: false,
@@ -414,6 +440,12 @@ async function loadSession(code) {
   for (const el of $$('[data-brand]')) el.textContent = st.brand;
   if (!store.get('na_lang') && STR[st.info.lang]) st.lang = st.info.lang;
 
+  // En Android la pantalla se comparte con la app. En la web solo queda el navegador compartido.
+  if (IS_ANDROID && !st.webOnly) return showAppScreen();
+  continueSession(code);
+}
+
+function continueSession(code) {
   st.token = store.get(`na_token_${code}`, true);
   st.name = store.get(`na_name_${code}`, true) || '';
   if (st.token) {
@@ -423,6 +455,31 @@ async function loadSession(code) {
     show('terms');
   }
 }
+
+function showAppScreen() {
+  const a = st.info.android || {};
+  $('#app-available').hidden = !a.available;
+  $('#app-unavailable').hidden = !!a.available;
+  if (a.available) {
+    // Chrome abre la app si está instalada; si no, vuelve a esta página en modo instalación.
+    const fallback = `${location.origin}/s/${st.code}?install=1`;
+    $('#open-app-btn').href =
+      `intent://s/${st.code}#Intent;scheme=nibbleassist;package=${a.package};` +
+      `S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
+    $('#download-app-btn').href = a.url;
+  }
+  show('app');
+  if (new URLSearchParams(location.search).has('install')) {
+    const panel = $('#install-panel');
+    panel.classList.add('attention');
+    panel.scrollIntoView({ block: 'center' });
+  }
+}
+
+$('#app-web-btn').addEventListener('click', () => {
+  st.webOnly = true;
+  continueSession(st.code);
+});
 
 $('#accept-form').addEventListener('submit', async (e) => {
   e.preventDefault();

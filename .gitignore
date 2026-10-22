@@ -4,3 +4,9 @@ data/
 docker-compose.override.yml
 Caddyfile
 .env.bak-*
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.jks
+*.apk

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Nibbletec Assist</string>
+    <string name="your_technician">your technician</string>
+
+    <string name="code_title">Enter your session code</string>
+    <string name="code_hint">Your technician gave you a 9-digit code.</string>
+    <string name="code_label">Session code</string>
+    <string name="continue_btn">Continue</string>
+    <string name="code_invalid">The code has 9 digits.</string>
+    <string name="loading">Loading…</string>
+
+    <string name="err_not_found_title">This link isn’t valid</string>
+    <string name="err_not_found">Check that the link is complete, or ask your technician for a new one.</string>
+    <string name="err_expired_title">This link has expired</string>
+    <string name="err_expired">For your security, links only last a short time. Ask your technician for a new one.</string>
+    <string name="err_ended_title">This session has ended</string>
+    <string name="err_ended">If you need more help, ask your technician for a new link.</string>
+    <string name="err_network_title">No connection</string>
+    <string name="err_network">Couldn’t connect. Check your internet connection and try again.</string>
+    <string name="err_replaced_title">The session was opened somewhere else</string>
+    <string name="err_replaced">This session continued on another device or window.</string>
+    <string name="retry">Try again</string>
+    <string name="other_code">Enter another code</string>
+
+    <string name="terms_title">Support session with %1$s</string>
+    <string name="terms_lede">%1$s will only see your screen while you share it, and can point to where you should tap. They can’t control your phone.</string>
+    <string name="terms_heading">Terms of service</string>
+    <string name="name_label">Your full name</string>
+    <string name="agree_label">I have read and accept the terms of service.</string>
+    <string name="accept_btn">Accept and continue</string>
+    <string name="err_name">Enter your full name.</string>
+    <string name="err_agree">To continue, check the box to accept.</string>
+    <string name="err_terms_changed">The terms were updated. Please review and accept them again.</string>
+
+    <string name="marks_title">Let %1$s point on your screen</string>
+    <string name="marks_body">To see %1$s’s marks on top of your screen, allow Nibbletec Assist to display over other apps. Android will open a setting: turn the switch on and come back here.</string>
+    <string name="marks_allow">Allow</string>
+    <string name="marks_skip">Not now</string>
+
+    <string name="ready_title">You’re all set, %1$s</string>
+    <string name="share_btn">Share my screen</string>
+    <string name="share_hint">Android will ask you to confirm. If it asks what to share, choose “Entire screen” so %1$s can follow you between apps.</string>
+    <string name="share_cancelled">Nothing was shared. You can try again whenever you’re ready.</string>
+    <string name="share_failed">Your screen couldn’t be shared. Try again.</string>
+
+    <string name="sharing_title">Sharing your screen with %1$s</string>
+    <string name="sharing_waiting">Sharing. %1$s will see your screen as soon as they connect.</string>
+    <string name="sharing_body">You can leave this app and use your phone normally. %1$s will see what you do and guide you.</string>
+    <string name="marks_on">%1$s’s marks appear on top of your screen.</string>
+    <string name="marks_off">Marks are off. Turn them on to see where %1$s is pointing.</string>
+    <string name="marks_enable">Turn on marks</string>
+    <string name="stop_btn">Stop sharing</string>
+    <string name="stopped_toast">You stopped sharing your screen.</string>
+
+    <string name="ended_title">Session ended</string>
+    <string name="ended_body">Your screen is no longer being shared. You can close this app.</string>
+
+    <string name="snapshot_toast">%1$s took a screenshot of your shared screen to document the case.</string>
+    <string name="notif_channel">Screen sharing</string>
+    <string name="notif_title">Sharing your screen</string>
+    <string name="notif_text">With %1$s. Tap to open.</string>
+    <string name="notif_stop">Stop</string>
+    <string name="pill_sharing">Sharing</string>
+    <string name="pill_stop">Stop</string>
+</resources>

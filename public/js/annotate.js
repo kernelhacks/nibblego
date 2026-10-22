@@ -190,10 +190,10 @@ function drawArrow(ctx, T, a, u) {
   ctx.fill();
 }
 
-function drawPen(ctx, T, a, u, now) {
+function drawPen(ctx, T, a, u, now, isDraft = false) {
   if (!a.pts || a.pts.length < 2) return;
   let alpha = 1;
-  if (a.ttl) {
+  if (a.ttl && !isDraft) {
     const left = a.ttl - (now - (a._t || now));
     alpha = clamp(left / 1200, 0, 1);
     if (alpha <= 0) return;
@@ -361,7 +361,7 @@ export function drawScene(o) {
   for (const a of list) {
     if (a.type === 'rect') drawRect(ctx, T, a, u, now);
     else if (a.type === 'arrow') drawArrow(ctx, T, a, u);
-    else if (a.type === 'pen') drawPen(ctx, T, a, u, now);
+    else if (a.type === 'pen') drawPen(ctx, T, a, u, now, a === draft);
     else if (a.type === 'click') drawClick(ctx, T, a, u, now, font);
   }
   drawPointer(ctx, T, pointer, u, now);

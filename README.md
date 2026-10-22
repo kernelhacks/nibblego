@@ -59,9 +59,16 @@ Para desactivarlo, deja `COBROWSE_URL` vacío y quita el servicio `browser` del 
 | Chrome / Edge en PC o Mac | Sí | Sí, con marcas, acercamiento y botones |
 | Safari en Mac | Sí | Imagen en imagen nativa (sin botones) |
 | Firefox | Sí | Con el botón de imagen en imagen de Firefox |
-| Celulares y tabletas | No (el navegador no lo permite) | La página lo avisa antes de aceptar |
+| Android | Con la **app Nibbletec Assist** | Las marcas se dibujan sobre su pantalla real |
+| iPhone y iPad | Todavía no | La página lo avisa antes de aceptar |
 
-El flujo completo se probó de punta a punta en Chromium. La alternativa para Safari y Firefox está implementada, pero conviene probarla con un equipo real antes de ofrecerla.
+En celulares (Android sin la app, iPhone y iPad) sigue disponible el **navegador compartido** desde el navegador del teléfono.
+
+El flujo web se probó de punta a punta en Chromium. La alternativa para Safari y Firefox está implementada, pero conviene probarla con un equipo real antes de ofrecerla.
+
+## App Android
+
+En un celular Android, el enlace de la sesión abre la app si ya está instalada. Si no lo está, la página explica cómo descargarla y ofrece también **Continuar en el navegador** para usar solo el navegador compartido. El APK se compila con GitHub Actions y se publica desde la consola del técnico (**App Android → Subir APK**). Los pasos están en [`android/README.md`](android/README.md).
 
 ## Probar en tu computadora
 
@@ -99,7 +106,7 @@ Conserva el historial de cambios de esos archivos en Git. El registro guarda la 
 
 Cada evento se añade a `data/audit.jsonl` (volumen `assist-data`) y aparece en el panel:
 
-`session_created`, `terms_accepted`, `client_connected`, `sharing_started`, `sharing_stopped`, `snapshot_taken`, `session_ended`, `tech_login`, `tech_login_failed`, `cobrowse_started`, `cobrowse_navigated` (solo el dominio), `cobrowse_blocked`, `cobrowse_control_granted`, `cobrowse_control_revoked`, `cobrowse_ended`
+`session_created`, `terms_accepted`, `client_connected`, `sharing_started`, `sharing_stopped`, `snapshot_taken`, `session_ended`, `tech_login`, `tech_login_failed`, `cobrowse_started`, `cobrowse_navigated` (solo el dominio), `cobrowse_blocked`, `cobrowse_control_granted`, `cobrowse_control_revoked`, `cobrowse_ended`, `app_uploaded`
 
 ```json
 {"at":"2026-10-22T16:22:30.112Z","event":"terms_accepted","code":"483542305","ticket":"2041","clientName":"María López","lang":"es","termsVersion":"bcdc2fd96e6f351f","ip":"203.0.113.7","userAgent":"Mozilla/5.0 …","techUser":"dpochet"}
@@ -137,6 +144,8 @@ public/js/client.js    Lógica del cliente y ventana flotante
 public/js/tech.js      Lógica del técnico y herramientas
 public/js/cobrowse-view.js  Vista del navegador compartido (imagen, mouse y teclado), común a ambos lados
 terms/                 Términos en español e inglés
+android/               App Android (Kotlin): ver android/README.md
+.github/workflows/     Compilación automática del APK
 ```
 
 Fuente tipográfica: Atkinson Hyperlegible Next (licencia SIL OFL, en `public/fonts/OFL.txt`).
