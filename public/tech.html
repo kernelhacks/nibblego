@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Consola de soporte</title>
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/tech.css">
+  <script type="module" src="/js/tech.js"></script>
+</head>
+<body class="tech">
+
+  <!-- Acceso -->
+  <div class="login-wrap" data-view="login" hidden>
+    <form class="login" id="login-form">
+      <div class="brand-row"><img src="/img/icon.svg" alt="" width="32" height="32"><span><span data-brand>Nibbletec</span> Assist</span></div>
+      <h1>Consola del técnico</h1>
+      <label class="t-field"><span>Usuario</span><input id="login-user" type="text" autocomplete="username" required></label>
+      <label class="t-field"><span>Contraseña</span><input id="login-pass" type="password" autocomplete="current-password" required></label>
+      <p class="t-error" id="login-error" role="alert" hidden></p>
+      <button class="btn primary" type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <!-- Panel principal -->
+  <div class="dash-wrap" data-view="dash" hidden>
+    <header class="t-top">
+      <div class="brand-row"><img src="/img/icon.svg" alt="" width="28" height="28"><span><span data-brand>Nibbletec</span> Assist</span></div>
+      <div class="t-top-right">
+        <span class="me" id="me-name"></span>
+        <button class="btn ghost small" type="button" id="logout-btn">Salir</button>
+      </div>
+    </header>
+
+    <main class="dash">
+      <section class="t-card new-session">
+        <h2>Nueva sesión</h2>
+        <form id="new-form">
+          <label class="t-field"><span>Cliente <em>opcional</em></span><input id="new-client" type="text" maxlength="80" placeholder="Nombre o empresa"></label>
+          <label class="t-field"><span>Ticket <em>opcional</em></span><input id="new-ticket" type="text" maxlength="60" placeholder="Ej. 2041"></label>
+          <div class="t-row">
+            <label class="t-field"><span>Idioma del cliente</span>
+              <select id="new-lang"><option value="es">Español</option><option value="en">English</option></select>
+            </label>
+            <label class="t-field"><span>Validez del enlace</span>
+              <select id="new-ttl"><option value="30">30 minutos</option><option value="60" selected>1 hora</option><option value="240">4 horas</option><option value="1440">24 horas</option></select>
+            </label>
+          </div>
+          <button class="btn primary" type="submit">Crear enlace</button>
+        </form>
+
+        <div class="new-result" id="new-result" hidden>
+          <p class="code-big code-digits" id="new-code"></p>
+          <label class="t-field"><span>Enlace para el cliente</span>
+            <span class="copy-row"><input id="new-url" type="text" readonly><button class="btn small" type="button" data-copy="#new-url">Copiar</button></span>
+          </label>
+          <label class="t-field"><span>Mensaje listo para enviar</span>
+            <textarea id="new-msg" rows="7" readonly></textarea>
+          </label>
+          <div class="t-actions">
+            <button class="btn small" type="button" data-copy="#new-msg">Copiar mensaje</button>
+            <a class="btn primary small" id="new-open" href="#">Abrir sesión</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="t-card sessions">
+        <h2>Sesiones</h2>
+        <div class="table-wrap">
+          <table class="t-table" id="sessions-table">
+            <thead><tr><th>Código</th><th>Cliente</th><th>Estado</th><th>Creada</th><th><span class="sr">Acciones</span></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty" id="sessions-empty">Todavía no hay sesiones. Crea un enlace para empezar.</p>
+      </section>
+
+      <section class="t-card audit">
+        <h2>Registro de actividad</h2>
+        <div class="table-wrap">
+          <table class="t-table" id="audit-table">
+            <thead><tr><th>Hora</th><th>Evento</th><th>Sesión</th><th>Detalle</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty" id="audit-empty">Sin actividad registrada.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Sesión en vivo -->
+  <div class="live-wrap" data-view="session" hidden>
+    <header class="s-top">
+      <a class="back" href="#/">Sesiones</a>
+      <div class="s-title">
+        <strong id="s-client">Cliente</strong>
+        <span class="s-sub"><span class="code-digits" id="s-code"></span><span id="s-ticket"></span></span>
+      </div>
+      <div class="pills">
+        <span class="pill" id="pill-client">Cliente</span>
+        <span class="pill" id="pill-share">Pantalla</span>
+        <span class="pill" id="pill-pip">Ventana flotante</span>
+      </div>
+      <button class="btn danger small" type="button" id="end-btn">Finalizar sesión</button>
+    </header>
+
+    <div class="s-body">
+      <nav class="tools" aria-label="Herramientas">
+        <button type="button" data-tool="pointer" title="Puntero láser (P)" aria-label="Puntero láser"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" class="fill"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg><kbd>P</kbd></button>
+        <button type="button" data-tool="click" title="Marcar clic numerado (C)" aria-label="Marcar clic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" class="fill"/></svg><kbd>C</kbd></button>
+        <button type="button" data-tool="rect" title="Recuadro (R)" aria-label="Recuadro"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2.5"/></svg><kbd>R</kbd></button>
+        <button type="button" data-tool="spot" title="Foco: oscurece el resto (F)" aria-label="Foco"><svg viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="16" rx="2" class="fill dim"/><rect x="7.5" y="8.5" width="9" height="7" rx="1.5" class="hole"/></svg><kbd>F</kbd></button>
+        <button type="button" data-tool="arrow" title="Flecha (A)" aria-label="Flecha"><svg viewBox="0 0 24 24"><path d="M5 19 18 6M10 6h8v8"/></svg><kbd>A</kbd></button>
+        <button type="button" data-tool="pen" title="Lápiz, se borra solo (D)" aria-label="Lápiz"><svg viewBox="0 0 24 24"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/></svg><kbd>D</kbd></button>
+        <button type="button" data-tool="pan" title="Mover la vista (M o mantener Espacio)" aria-label="Mover la vista"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3 9.5 5.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5"/></svg><kbd>M</kbd></button>
+        <hr>
+        <div class="swatches" role="group" aria-label="Color">
+          <button type="button" data-color="red" title="Rojo" aria-label="Rojo"></button>
+          <button type="button" data-color="amber" title="Ámbar" aria-label="Ámbar"></button>
+          <button type="button" data-color="green" title="Verde" aria-label="Verde"></button>
+          <button type="button" data-color="blue" title="Azul" aria-label="Azul"></button>
+        </div>
+      </nav>
+
+      <div class="s-stage" id="stage">
+        <canvas id="tech-canvas" tabindex="0" aria-label="Pantalla del cliente"></canvas>
+        <div class="stage-empty" id="stage-empty"><p id="stage-empty-text"></p></div>
+        <div class="zoom-badge" id="zoom-badge" hidden><span id="zoom-text">100 %</span><button type="button" id="fit-btn">Ajustar</button></div>
+      </div>
+
+      <aside class="s-side">
+        <section>
+          <h3>Indicación para el cliente</h3>
+          <form id="caption-form" class="caption-row">
+            <input id="caption-input" type="text" maxlength="200" placeholder="Escribe una indicación…" autocomplete="off">
+            <button class="btn primary small" type="submit">Mostrar</button>
+          </form>
+          <div class="chips" id="phrases"></div>
+          <button class="link-btn" type="button" id="caption-clear" hidden>Quitar indicación</button>
+        </section>
+
+        <section>
+          <h3>Marcas</h3>
+          <div class="t-actions">
+            <button class="btn small" type="button" id="undo-btn" title="Ctrl+Z">Deshacer</button>
+            <button class="btn small" type="button" id="clear-btn" title="Supr">Borrar todo</button>
+            <button class="btn small" type="button" id="snap-btn" title="S">Captura</button>
+          </div>
+          <p class="side-note" id="pip-note"></p>
+        </section>
+
+        <section>
+          <h3>Cliente</h3>
+          <dl class="kv" id="client-kv"></dl>
+        </section>
+
+        <section>
+          <h3>Conexión</h3>
+          <dl class="kv" id="conn-kv"></dl>
+        </section>
+
+        <section class="shortcuts">
+          <h3>Atajos</h3>
+          <p>Rueda: zoom · Espacio + arrastrar: mover · 0: ajustar · Esc: cancelar</p>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <video id="remote-video" class="offscreen-video" muted playsinline autoplay></video>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

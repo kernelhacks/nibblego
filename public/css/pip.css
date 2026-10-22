@@ -1,0 +1,39 @@
+/* Ventana flotante del cliente (Document Picture-in-Picture) */
+html, body.pip { height: 100%; }
+body.pip {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--stage);
+  color: #fff;
+  font-size: 14px;
+  overflow: hidden;
+}
+.pip-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: var(--ink);
+}
+.pip-status { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-weight: 600; }
+.pip-status-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pip .seg { background: transparent; border-color: rgba(255, 255, 255, 0.22); }
+.pip .seg button { color: rgba(255, 255, 255, 0.78); padding: 4px 9px; font-size: 0.85rem; }
+.pip .seg button[aria-pressed="true"] { background: #fff; color: var(--ink); }
+.pip-stop {
+  border: 1.5px solid rgba(255, 120, 130, 0.6);
+  background: transparent;
+  color: #FFB3BB;
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.pip-stop:hover { background: rgba(255, 61, 87, 0.15); }
+.pip-canvas { display: block; width: 100%; height: 100%; min-height: 0; }
+.pip .toasts { bottom: 10px; width: calc(100vw - 20px); }
+.pip .toast { font-size: 0.85rem; padding: 8px 12px; background: #fff; color: var(--ink); }
+@media (max-width: 360px) {
+  .pip-status-text { display: none; }
+}

@@ -1,0 +1,71 @@
+# Funciona igual en Coolify (variables desde su interfaz) y en local (archivo .env).
+services:
+  assist:
+    build: .
+    restart: unless-stopped
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:?}
+      BRAND_NAME: ${BRAND_NAME:-Nibbletec}
+      TECH_USERS: ${TECH_USERS:?}
+      SESSION_SECRET: ${SESSION_SECRET:?}
+      LINK_TTL_MIN: ${LINK_TTL_MIN:-60}
+      SESSION_MAX_HOURS: ${SESSION_MAX_HOURS:-8}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      STUN_URLS: ${STUN_URLS:-stun:stun.l.google.com:19302}
+      TURN_URLS: ${TURN_URLS:?}
+      TURN_SECRET: ${TURN_SECRET:?}
+      WEBHOOK_URL: ${WEBHOOK_URL:-}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+      DATA_DIR: /data
+    volumes:
+      - assist-data:/data   # registro de aceptaciones (audit.jsonl)
+    expose:
+      - "8080"
+    # En Coolify: asigna el dominio https://soporte.nibbletec.com:8080 a este servicio.
+    # Con un Traefik propio (sin Coolify), descomenta y ajusta:
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.assist.rule=Host(`soporte.nibbletec.com`)
+    #   - traefik.http.routers.assist.entrypoints=https
+    #   - traefik.http.routers.assist.tls.certresolver=letsencrypt
+    #   - traefik.http.services.assist.loadbalancer.server.port=8080
+
+  # Servidor TURN: retransmite el video cuando el cliente está detrás de una red estricta.
+  coturn:
+    image: coturn/coturn:latest
+    restart: unless-stopped
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "49160-49200:49160-49200/udp"
+    command:
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --fingerprint
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET:?}
+      - --realm=${TURN_REALM:?}
+      - --external-ip=${TURN_EXTERNAL_IP:?}
+      - --stale-nonce=600
+      - --user-quota=12
+      - --total-quota=1200
+      - --no-cli
+      - --no-multicast-peers
+      - --no-tlsv1
+      - --no-tlsv1_1
+      - --log-file=stdout
+      - --simple-log
+      # Impide usar el TURN para alcanzar redes internas del servidor
+      - --denied-peer-ip=0.0.0.0-0.255.255.255
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=100.64.0.0-100.127.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
+      - --denied-peer-ip=169.254.0.0-169.254.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.0.0.0-192.0.0.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --denied-peer-ip=198.18.0.0-198.19.255.255
+
+volumes:
+  assist-data:

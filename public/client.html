@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Soporte remoto</title>
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/client.css">
+  <script type="module" src="/js/client.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="/img/logo.svg" alt="" width="28" height="28">
+      <span data-brand>Nibbletec</span>
+    </div>
+    <div class="lang" role="group" data-i18n-aria="langLabel" aria-label="Idioma">
+      <button type="button" data-lang="es" aria-pressed="true">ES</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Cargando -->
+    <section class="screen narrow" data-screen="loading">
+      <p class="muted" data-i18n="loading">Cargando…</p>
+    </section>
+
+    <!-- Entrada de código (cuando se abre la raíz del sitio) -->
+    <section class="screen narrow" data-screen="code" hidden>
+      <h1 data-i18n="codeTitle">Ingresa tu código de sesión</h1>
+      <p class="lede" data-i18n="codeLede">Tu técnico te dio un código de 9 dígitos.</p>
+      <form id="code-form" class="panel" novalidate>
+        <label class="field">
+          <span data-i18n="codeLabel">Código de sesión</span>
+          <input id="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="11" class="code-digits big-input" placeholder="000 000 000">
+        </label>
+        <p class="form-error" id="code-error" role="alert" hidden></p>
+        <button class="btn primary block" type="submit" data-i18n="codeSubmit">Continuar</button>
+      </form>
+    </section>
+
+    <!-- Error -->
+    <section class="screen narrow" data-screen="error" hidden>
+      <h1 id="error-title"></h1>
+      <p class="lede" id="error-text"></p>
+      <button class="btn" type="button" id="retry-btn" hidden data-i18n="retry">Reintentar</button>
+    </section>
+
+    <!-- Términos -->
+    <section class="screen" data-screen="terms" hidden>
+      <div class="terms-layout">
+        <div class="intro">
+          <h1 data-i18n="termsTitle">Sesión de soporte</h1>
+          <p class="lede" data-i18n="termsLede"></p>
+          <figure class="demo" role="img" data-i18n-aria="demoAlt">
+            <svg viewBox="0 0 360 220" aria-hidden="true">
+              <rect class="d-win" x="10" y="10" width="340" height="200" rx="12"/>
+              <path class="d-titlebar" d="M10 22a12 12 0 0 1 12-12h316a12 12 0 0 1 12 12v14H10z"/>
+              <circle class="d-dot" cx="27" cy="23" r="4"/>
+              <circle class="d-dot" cx="41" cy="23" r="4"/>
+              <circle class="d-dot" cx="55" cy="23" r="4"/>
+              <rect class="d-side" x="10" y="36" width="80" height="174"/>
+              <rect class="d-bar" x="22" y="54" width="52" height="8" rx="4"/>
+              <rect class="d-bar" x="22" y="72" width="44" height="8" rx="4"/>
+              <rect class="d-bar" x="22" y="90" width="56" height="8" rx="4"/>
+              <rect class="d-bar" x="22" y="108" width="40" height="8" rx="4"/>
+              <rect class="d-head" x="106" y="54" width="132" height="12" rx="4"/>
+              <rect class="d-line" x="106" y="78" width="210" height="8" rx="4"/>
+              <rect class="d-line" x="106" y="94" width="186" height="8" rx="4"/>
+              <rect class="d-input" x="106" y="116" width="170" height="24" rx="6"/>
+              <rect class="d-btn" x="106" y="160" width="86" height="30" rx="7"/>
+              <rect class="d-btn-label" x="126" y="172" width="46" height="6" rx="3"/>
+              <rect class="d-hl" x="97" y="151" width="104" height="48" rx="10" pathLength="100"/>
+              <g class="d-target">
+                <circle class="d-ring" cx="149" cy="175" r="11"/>
+                <circle class="d-ring r2" cx="149" cy="175" r="11"/>
+                <circle class="d-core" cx="149" cy="175" r="5.5"/>
+              </g>
+              <g class="d-caption">
+                <rect x="212" y="162" width="124" height="26" rx="13"/>
+                <text x="274" y="179.5" text-anchor="middle" data-i18n="demoCaption">Haz clic aquí</text>
+              </g>
+            </svg>
+          </figure>
+          <ul class="facts">
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <span data-i18n="factChoose"></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+              <span data-i18n="factStop"></span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11M7.5 9.5 12 14l4.5-4.5M5 20h14"/><path d="M4 4l16 16"/></svg>
+              <span data-i18n="factNothing"></span>
+            </li>
+          </ul>
+        </div>
+
+        <form id="accept-form" class="panel" novalidate>
+          <div class="notice tight" data-unsupported hidden>
+            <h2 data-i18n="unsupportedTitle"></h2>
+            <p data-i18n="unsupported"></p>
+          </div>
+          <h2 data-i18n="termsHeading">Términos del servicio</h2>
+          <div class="terms-box" id="terms-box" tabindex="0" role="region" data-i18n-aria="termsHeading"></div>
+          <label class="field">
+            <span data-i18n="nameLabel">Tu nombre completo</span>
+            <input id="name-input" name="name" type="text" autocomplete="name" maxlength="80" required>
+          </label>
+          <label class="check">
+            <input id="agree-input" type="checkbox" required>
+            <span data-i18n="agreeLabel">Leí y acepto los términos del servicio.</span>
+          </label>
+          <p class="form-error" id="accept-error" role="alert" hidden></p>
+          <button class="btn primary block" type="submit" id="accept-btn" data-i18n="acceptBtn">Aceptar y continuar</button>
+          <p class="meta"><span data-i18n="sessionCode">Código de sesión</span> <strong class="code-digits" data-code></strong></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- Listo para compartir -->
+    <section class="screen narrow" data-screen="ready" hidden>
+      <h1 data-i18n="readyTitle">Todo listo</h1>
+      <p class="status" data-tech-status><span class="dot"></span><span class="status-text"></span></p>
+      <div id="share-block">
+        <button class="btn primary big" type="button" id="share-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M12 13V8M9.5 10.5 12 8l2.5 2.5"/></svg>
+          <span data-i18n="shareBtn">Compartir mi pantalla</span>
+        </button>
+        <p class="hint" data-i18n="shareHint"></p>
+      </div>
+      <div class="notice" id="unsupported" hidden>
+        <h2 data-i18n="unsupportedTitle"></h2>
+        <p data-i18n="unsupported"></p>
+      </div>
+    </section>
+
+    <!-- Compartiendo -->
+    <section class="screen wide" data-screen="sharing" hidden>
+      <div class="share-bar">
+        <p class="live-status"><span class="dot live"></span><span id="live-text"></span></p>
+        <div class="share-actions">
+          <div class="seg" role="group" data-i18n-aria="viewLabel">
+            <button type="button" data-mode="auto" aria-pressed="true" data-i18n="viewAuto">Acercar</button>
+            <button type="button" data-mode="full" aria-pressed="false" data-i18n="viewFull">Ver todo</button>
+          </div>
+          <button class="btn" type="button" id="pip-btn" data-i18n="pipOpen">Abrir ventana flotante</button>
+          <button class="btn danger" type="button" id="stop-btn" data-i18n="stopBtn">Dejar de compartir</button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <canvas id="view-canvas"></canvas>
+        <video id="view-video" muted playsinline autoplay hidden></video>
+      </div>
+      <p class="hint" id="pip-hint"></p>
+    </section>
+
+    <!-- Finalizada -->
+    <section class="screen narrow" data-screen="ended" hidden>
+      <h1 data-i18n="endedTitle">Sesión finalizada</h1>
+      <p class="lede" data-i18n="ended"></p>
+    </section>
+  </main>
+
+  <video id="src-video" class="offscreen-video" muted playsinline autoplay></video>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

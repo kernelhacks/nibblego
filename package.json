@@ -1,0 +1,19 @@
+{
+  "name": "nibble-assist",
+  "version": "1.0.0",
+  "description": "Soporte remoto solo visual por navegador: términos, compartir pantalla y resaltado en vivo.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "hash-password": "node server.js hash-password"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.3",
+    "ws": "^8.22.0"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}
