@@ -1,3 +1,6 @@
+// Import explícito: dentro de este archivo, "java" es la extensión java {} de Gradle, no el paquete.
+import java.net.URI
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,7 +9,7 @@ plugins {
 
 // Servidor fijo por compilación: la app solo se conecta a este servidor.
 val serverUrl = (findProperty("serverUrl") as String? ?: "https://soporte.nibbletec.com").trimEnd('/')
-val serverHost: String = java.net.URI(serverUrl).host
+val serverHost: String = URI(serverUrl).host
 val appVersionCode = (findProperty("versionCode") as String? ?: "1").toInt()
 val appVersionName = findProperty("versionName") as String? ?: "1.0"
 
