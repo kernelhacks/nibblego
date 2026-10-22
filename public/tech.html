@@ -98,10 +98,15 @@
         <strong id="s-client">Cliente</strong>
         <span class="s-sub"><span class="code-digits" id="s-code"></span><span id="s-ticket"></span></span>
       </div>
+      <div class="seg mode-seg" role="group" aria-label="Vista" id="mode-seg" hidden>
+        <button type="button" data-mode="screen" aria-pressed="true">Pantalla</button>
+        <button type="button" data-mode="browser" aria-pressed="false">Navegador</button>
+      </div>
       <div class="pills">
         <span class="pill" id="pill-client">Cliente</span>
         <span class="pill" id="pill-share">Pantalla</span>
         <span class="pill" id="pill-pip">Ventana flotante</span>
+        <span class="pill" id="pill-cb" hidden>Navegador</span>
       </div>
       <button class="btn danger small" type="button" id="end-btn">Finalizar sesión</button>
     </header>
@@ -128,6 +133,23 @@
         <canvas id="tech-canvas" tabindex="0" aria-label="Pantalla del cliente"></canvas>
         <div class="stage-empty" id="stage-empty"><p id="stage-empty-text"></p></div>
         <div class="zoom-badge" id="zoom-badge" hidden><span id="zoom-text">100 %</span><button type="button" id="fit-btn">Ajustar</button></div>
+      </div>
+
+      <div class="s-cb" id="cb-pane" hidden>
+        <form class="cb-toolbar" id="cb-url-form" novalidate>
+          <button type="button" class="cb-icon" data-cb-nav="back" aria-label="Atrás" title="Atrás"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button type="button" class="cb-icon" data-cb-nav="forward" aria-label="Adelante" title="Adelante"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button type="button" class="cb-icon" data-cb-nav="reload" aria-label="Recargar" title="Recargar"><svg viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></svg></button>
+          <input id="cb-url" type="text" autocomplete="off" spellcheck="false" aria-label="Dirección web" placeholder="Dirección web">
+          <button class="btn small primary" type="submit" id="cb-go">Ir</button>
+          <span class="cb-ctl" id="cb-ctl"></span>
+          <button class="btn small primary" type="button" id="cb-request-btn">Pedir control</button>
+          <button class="btn small ghost" type="button" id="cb-close-btn">Cerrar navegador</button>
+        </form>
+        <div class="s-stage">
+          <canvas id="cb-canvas" tabindex="0" aria-label="Navegador compartido"></canvas>
+          <div class="stage-empty" id="cb-empty"><p id="cb-empty-text"></p></div>
+        </div>
       </div>
 
       <aside class="s-side">

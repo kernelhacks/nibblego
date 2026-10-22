@@ -1,4 +1,5 @@
 import { drawScene, pruneExpired, COLORS, PEN_TTL } from './annotate.js';
+import { CobrowseView } from './cobrowse-view.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -24,6 +25,12 @@ const EVENTS = {
   session_ended: 'Sesión finalizada',
   tech_login: 'Inicio de sesión',
   tech_login_failed: 'Acceso fallido',
+  cobrowse_started: 'Abrió el navegador compartido',
+  cobrowse_navigated: 'Navegó a',
+  cobrowse_control_granted: 'Dio el control',
+  cobrowse_control_revoked: 'Retiró el control',
+  cobrowse_ended: 'Cerró el navegador compartido',
+  cobrowse_blocked: 'Dirección bloqueada',
 };
 const SURFACES = { monitor: 'Pantalla completa', window: 'Ventana', browser: 'Pestaña' };
 const REASONS = {
@@ -33,6 +40,9 @@ const REASONS = {
   link_expired: 'enlace caducado',
   max_duration: 'duración máxima',
   server_shutdown: 'reinicio del servidor',
+  idle: 'sin uso',
+  page_closed: 'la página se cerró',
+  browser_crashed: 'el navegador se reinició',
 };
 const byText = (by) => (by?.startsWith('tech:') ? `finalizó ${by.slice(5)}` : REASONS[by] || by);
 
@@ -68,11 +78,14 @@ const st = {
   lastDraftSend: 0,
   stats: null,
   dashTimer: 0,
+  mode: 'screen',
+  cb: { open: false },
 };
 
 const canvas = $('#tech-canvas');
 const ctx = canvas.getContext('2d');
 const video = $('#remote-video');
+const cbView = new CobrowseView($('#cb-canvas'), { send: (m) => send(m), canControl: () => !!st.cb.control, bg: '#141B23' });
 
 // ---------------------------------------------------------------------------
 // Utilidades de interfaz
@@ -187,6 +200,7 @@ $('#new-form').addEventListener('submit', async (e) => {
 
 function statusText(s) {
   if (s.status === 'ended') return ['Finalizada', 'off'];
+  if (s.cobrowse) return [s.cobrowse.control ? 'Navegador, con control' : 'Navegador compartido', 'live'];
   if (s.sharing) return ['Compartiendo', 'live'];
   if (s.clientConnected) return ['Cliente conectado', 'ok'];
   if (s.client) return ['Términos aceptados', 'ok'];
@@ -216,7 +230,7 @@ async function refreshDash() {
     const ab = $('#audit-table tbody');
     ab.innerHTML = audit
       .map((r) => {
-        const detail = [r.clientName, r.user || r.techUser, r.ip, r.surface && SURFACES[r.surface], byText(r.by), REASONS[r.reason] || r.reason]
+        const detail = [r.host, r.clientName, r.user || r.techUser, r.ip, r.surface && SURFACES[r.surface], byText(r.by), REASONS[r.reason] || r.reason]
           .filter(Boolean)
           .map(esc)
           .join(' · ');
@@ -253,6 +267,9 @@ function openSession(code) {
   st.clientPresent = false;
   st.pipOpen = false;
   st.session = null;
+  st.cb = { open: false };
+  cbView.clear();
+  setMode('screen');
   $('#caption-input').value = '';
   showView('session');
   setTool(st.tool);
@@ -276,6 +293,7 @@ function connectWS() {
   st.ws = ws;
   ws.onopen = () => ws.send(JSON.stringify({ t: 'join', role: 'tech', code: st.code }));
   ws.onmessage = (e) => {
+    if (typeof e.data !== 'string') return onCbFrame(e.data);
     let m;
     try {
       m = JSON.parse(e.data);
@@ -354,6 +372,21 @@ function onMessage(m) {
     case 'ice':
       onIce(m);
       break;
+    case 'cb-state':
+      onCbState(m);
+      break;
+    case 'cb-notice': {
+      const msg = {
+        upload: 'La página pidió subir un archivo: no está disponible en el navegador compartido.',
+        bad_url: 'Esa dirección no es válida.',
+        nav_failed: 'No se pudo abrir esa página.',
+        blocked: 'Dirección bloqueada: el navegador compartido no abre redes privadas ni internas.',
+        unreachable: 'No se pudo abrir esa página: no responde o es una dirección interna (bloqueada).',
+        dialog: `La página mostró un aviso: ${m.text || ''}`,
+      }[m.kind];
+      if (msg) toast(msg);
+      break;
+    }
     case 'ended':
       st.ended = true;
       closePeer();
@@ -483,6 +516,7 @@ function renderSession() {
 
   renderPhrases();
   $('#caption-clear').hidden = !st.caption;
+  renderCb();
 }
 
 function renderPhrases() {
@@ -764,7 +798,7 @@ canvas.addEventListener(
 
 const KEYS = { p: 'pointer', c: 'click', r: 'rect', f: 'spot', a: 'arrow', d: 'pen', m: 'pan' };
 window.addEventListener('keydown', (e) => {
-  if (st.view !== 'session') return;
+  if (st.view !== 'session' || st.mode === 'browser') return;
   const typing = e.target.closest('input, textarea, select');
   if (typing) return;
   const k = e.key.toLowerCase();
@@ -830,7 +864,7 @@ function snapshot() {
 function frame() {
   requestAnimationFrame(frame);
   const now = performance.now();
-  if (st.view !== 'session' || document.hidden) return;
+  if (st.view !== 'session' || st.mode !== 'screen' || document.hidden) return;
   const dpr = window.devicePixelRatio || 1;
   const w = Math.round(canvas.clientWidth * dpr);
   const h = Math.round(canvas.clientHeight * dpr);
@@ -861,6 +895,89 @@ function frame() {
   if (zoomed) $('#zoom-text').textContent = `${Math.round((sw / st.vp.w) * 100)} %`;
 }
 requestAnimationFrame(frame);
+
+// ---------------------------------------------------------------------------
+// Navegador compartido
+// ---------------------------------------------------------------------------
+function setMode(mode) {
+  st.mode = mode === 'browser' ? 'browser' : 'screen';
+  for (const b of $$('#mode-seg [data-mode]')) b.setAttribute('aria-pressed', String(b.dataset.mode === st.mode));
+  $('#stage').hidden = st.mode !== 'screen';
+  $('#cb-pane').hidden = st.mode !== 'browser';
+  $('.s-body').classList.toggle('cb-mode', st.mode === 'browser');
+  if (st.mode === 'screen') {
+    canvas.focus({ preventScroll: true });
+  } else {
+    hidePointer();
+    $('#cb-canvas').focus({ preventScroll: true });
+  }
+  renderCb();
+}
+for (const b of $$('#mode-seg [data-mode]')) b.addEventListener('click', () => setMode(b.dataset.mode));
+
+function onCbFrame(blob) {
+  if (!st.cb.open) return;
+  cbView.frame(blob);
+  $('#cb-empty').hidden = true;
+}
+
+function onCbState(m) {
+  const prev = st.cb;
+  st.cb = m;
+  if (m.open && !prev.open) {
+    toast('El cliente abrió el navegador compartido.');
+    setMode('browser');
+  } else if (!m.open && prev.open) {
+    cbView.clear();
+    toast('Se cerró el navegador compartido.');
+    setMode('screen');
+  } else if (m.open && m.control !== prev.control) {
+    toast(m.control ? 'El cliente te dio el control del navegador.' : 'El cliente retiró tu control del navegador.');
+  }
+}
+
+function renderCb() {
+  const enabled = !!st.me?.cobrowse;
+  $('#mode-seg').hidden = !enabled;
+  const cb = st.cb;
+  const ctl = !!cb.control;
+  setPill('#pill-cb', cb.open ? (ctl ? 'Navegador: con control' : 'Navegador: solo ver') : 'Navegador cerrado', cb.open ? (ctl ? 'live' : 'ok') : 'off');
+  $('#pill-cb').hidden = !enabled;
+  if (st.mode !== 'browser') return;
+  const url = $('#cb-url');
+  if (document.activeElement !== url) url.value = cb.url && cb.url !== 'about:blank' ? cb.url : '';
+  url.disabled = !ctl;
+  $('#cb-go').disabled = !ctl;
+  $('[data-cb-nav="back"]').disabled = !ctl || !cb.canBack;
+  $('[data-cb-nav="forward"]').disabled = !ctl || !cb.canForward;
+  $('[data-cb-nav="reload"]').disabled = !ctl;
+  $('#cb-ctl').textContent = !cb.open ? '' : ctl ? 'Tienes el control' : 'Solo ver';
+  $('#cb-ctl').className = `cb-ctl ${ctl ? 'on' : ''}`;
+  $('#cb-request-btn').hidden = !cb.open || ctl || !st.clientPresent;
+  $('#cb-close-btn').hidden = !cb.open;
+  $('#cb-canvas').dataset.control = String(ctl);
+  let msg = '';
+  if (!cb.open) msg = 'El cliente no ha abierto el navegador compartido. Pídele que pulse "Usar el navegador compartido" en su página de soporte.';
+  else if (!cbView.hasImage) msg = 'Abriendo el navegador…';
+  $('#cb-empty-text').textContent = msg;
+  $('#cb-empty').hidden = !msg;
+}
+
+$('#cb-request-btn').addEventListener('click', () => {
+  send({ t: 'cb-control-request' });
+  toast('Se le pidió el control al cliente.');
+});
+$('#cb-close-btn').addEventListener('click', () => {
+  if (confirm('¿Cerrar el navegador compartido? El cliente también dejará de verlo.')) send({ t: 'cb-close' });
+});
+for (const b of $$('#cb-pane [data-cb-nav]')) b.addEventListener('click', () => send({ t: 'cb-nav', action: b.dataset.cbNav }));
+$('#cb-url-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const url = $('#cb-url').value.trim();
+  if (!url || !st.cb.control) return;
+  send({ t: 'cb-nav', action: 'go', url });
+  $('#cb-canvas').focus({ preventScroll: true });
+});
 
 // ---------------------------------------------------------------------------
 // Arranque y rutas

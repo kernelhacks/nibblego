@@ -182,3 +182,71 @@ input[type="text"]:focus-visible { outline-offset: 0; border-color: var(--focus)
   .share-actions { width: 100%; }
   .share-actions .btn { flex: 1 1 auto; }
 }
+
+/* ---- Navegador compartido ---- */
+.cb-entry { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.cb-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.cb-head h1 { font-size: clamp(1.4rem, 1.1rem + 1vw, 1.8rem); }
+.cb-sub { margin-top: 4px; color: var(--ink-2); }
+.cb-request {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: #FFF6E5;
+  border: 1px solid #F0D9A8;
+  font-weight: 600;
+}
+.cb-request-actions { display: flex; gap: 10px; }
+.cb-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  background: #FDECEE;
+  border: 1px solid #F3B9C1;
+  color: #8A1C2B;
+  font-weight: 600;
+}
+.cb-frame { border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); }
+.cb-toolbar { display: flex; align-items: center; gap: 6px; padding: 8px; border-bottom: 1px solid var(--line); }
+.cb-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.cb-icon:hover:not(:disabled) { background: var(--paper); }
+.cb-icon:disabled { opacity: 0.35; cursor: default; }
+.cb-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cb-toolbar input[type="text"] { flex: 1; min-width: 0; padding: 8px 12px; border-radius: 999px; font-size: 0.97rem; }
+.cb-toolbar .btn { min-height: 40px; }
+.stage.cb-stage { border-radius: 0; height: clamp(320px, calc(100vh - 300px), 900px); }
+#cb-canvas { cursor: default; touch-action: none; }
+#cb-canvas:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.cb-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #C7D2DD; pointer-events: none; }
+
+@media (max-width: 640px) {
+  .cb-toolbar [data-cb-nav="forward"] { display: none; }
+  .cb-request-actions { width: 100%; }
+  .cb-request-actions .btn { flex: 1; }
+}

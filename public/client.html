@@ -139,6 +139,13 @@
         <h2 data-i18n="unsupportedTitle"></h2>
         <p data-i18n="unsupported"></p>
       </div>
+      <div class="cb-entry" data-cb-entry hidden>
+        <button class="btn big" type="button" data-cb-open>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M6.5 6.5h.01M9 6.5h.01"/><path d="M9.5 13.5 8 15l1.5 1.5M14.5 13.5 16 15l-1.5 1.5"/></svg>
+          <span data-cb-open-label></span>
+        </button>
+        <p class="hint" data-i18n="cbOpenHint"></p>
+      </div>
     </section>
 
     <!-- Compartiendo -->
@@ -151,6 +158,7 @@
             <button type="button" data-mode="full" aria-pressed="false" data-i18n="viewFull">Ver todo</button>
           </div>
           <button class="btn" type="button" id="pip-btn" data-i18n="pipOpen">Abrir ventana flotante</button>
+          <button class="btn" type="button" data-cb-open data-cb-entry hidden><span data-cb-open-label data-short></span></button>
           <button class="btn danger" type="button" id="stop-btn" data-i18n="stopBtn">Dejar de compartir</button>
         </div>
       </div>
@@ -159,6 +167,43 @@
         <video id="view-video" muted playsinline autoplay hidden></video>
       </div>
       <p class="hint" id="pip-hint"></p>
+    </section>
+
+    <!-- Navegador compartido -->
+    <section class="screen wide" data-screen="cobrowse" hidden>
+      <div class="cb-head">
+        <div class="cb-title">
+          <h1 data-i18n="cbTitle">Navegador compartido</h1>
+          <p class="cb-sub" id="cb-sub"></p>
+        </div>
+        <div class="share-actions">
+          <button class="btn" type="button" id="cb-control-btn"></button>
+          <button class="btn" type="button" id="cb-back-btn" data-i18n="cbBack">Volver</button>
+          <button class="btn danger" type="button" id="cb-close-btn" data-i18n="cbClose">Cerrar navegador</button>
+        </div>
+      </div>
+      <div class="cb-request" id="cb-request" role="alertdialog" aria-labelledby="cb-request-text" hidden>
+        <p id="cb-request-text"></p>
+        <div class="cb-request-actions">
+          <button class="btn primary" type="button" id="cb-request-yes" data-i18n="cbAllow">Permitir</button>
+          <button class="btn" type="button" id="cb-request-no" data-i18n="cbDeny">Ahora no</button>
+        </div>
+      </div>
+      <p class="cb-banner" id="cb-banner" role="status" hidden><span class="dot live"></span><span id="cb-banner-text"></span></p>
+      <div class="cb-frame">
+        <form class="cb-toolbar" id="cb-url-form" novalidate>
+          <button type="button" class="cb-icon" data-cb-nav="back" data-i18n-aria="cbNavBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button type="button" class="cb-icon" data-cb-nav="forward" data-i18n-aria="cbNavForward"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button type="button" class="cb-icon" data-cb-nav="reload" data-i18n-aria="cbNavReload"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></svg></button>
+          <input id="cb-url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-aria="cbUrlLabel">
+          <button class="btn primary" type="submit" data-i18n="cbGo">Ir</button>
+        </form>
+        <div class="stage cb-stage">
+          <canvas id="cb-canvas" tabindex="0" data-i18n-aria="cbTitle"></canvas>
+          <div class="cb-empty" id="cb-empty"><p id="cb-empty-text"></p></div>
+        </div>
+      </div>
+      <p class="hint" data-i18n="cbHint"></p>
     </section>
 
     <!-- Finalizada -->

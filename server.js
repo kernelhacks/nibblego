@@ -2,13 +2,15 @@
 /*
  * Nibbletec Assist — soporte remoto solo visual por navegador.
  * Servidor: sesiones con código, registro de aceptación de términos,
- * señalización WebRTC y relay de anotaciones por WebSocket.
+ * señalización WebRTC, relay de anotaciones por WebSocket y navegador
+ * compartido (cobrowse.js).
  */
 const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const crypto = require('node:crypto');
+const { createCobrowse } = require('./cobrowse');
 
 // ---------------------------------------------------------------------------
 // CLI: node server.js hash-password "contraseña"
@@ -55,6 +57,12 @@ const WEBHOOK_SECRET = env.WEBHOOK_SECRET || '';
 const COOKIE_SECURE = PUBLIC_URL.startsWith('https://');
 const PROXY_HOPS = clampInt(env.TRUST_PROXY, 0, 5, 1);
 const LANGS = ['es', 'en'];
+// Navegador compartido (vacío = desactivado)
+const COBROWSE_URL = env.COBROWSE_URL || '';
+const COBROWSE_MAX = clampInt(env.COBROWSE_MAX, 1, 50, 3);
+const COBROWSE_IDLE_MIN = clampInt(env.COBROWSE_IDLE_MIN, 1, 240, 15);
+const COBROWSE_PROXY_PORT = clampInt(env.COBROWSE_PROXY_PORT, 1, 65535, 3128);
+const COBROWSE_PORTS = list(env.COBROWSE_PORTS || '80,443,8080,8443').map(Number).filter((n) => n > 0 && n < 65536);
 
 let SESSION_SECRET = env.SESSION_SECRET;
 if (!SESSION_SECRET) {
@@ -270,17 +278,30 @@ function techView(s) {
     pipOpen: s.pipOpen,
     techConnected: !!s.ws.tech,
     clientConnected: !!s.ws.client,
+    cobrowse: cobrowse.summary(s),
   };
 }
 function send(ws, msg) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg));
 }
+
+const cobrowse = createCobrowse({
+  url: COBROWSE_URL,
+  max: COBROWSE_MAX,
+  idleMin: COBROWSE_IDLE_MIN,
+  proxyPort: COBROWSE_PROXY_PORT,
+  ports: COBROWSE_PORTS,
+  audit,
+  send,
+  cleanText,
+});
 function endSession(s, by) {
   if (s.status === 'ended') return;
   s.status = 'ended';
   s.endedAt = Date.now();
   if (s.sharing) audit('sharing_stopped', { code: s.code, reason: 'session_ended' });
   s.sharing = null;
+  cobrowse.close(s, 'session_ended');
   for (const ws of [s.ws.tech, s.ws.client]) send(ws, { t: 'ended', by });
   setTimeout(() => {
     for (const ws of [s.ws.tech, s.ws.client]) if (ws) ws.close(4010, 'ended');
@@ -305,6 +326,7 @@ setInterval(() => {
       sessions.delete(s.code);
     }
   }
+  cobrowse.sweep(now);
 }, 30 * 1000).unref();
 
 // ---------------------------------------------------------------------------
@@ -392,7 +414,7 @@ app.get('/api/s/:code', lookupLimiter, (req, res) => {
   if (err) return res.status(err === 'not_found' ? 404 : 410).json({ error: err });
   const terms = {};
   for (const l of LANGS) terms[l] = getTerms(l);
-  res.json({ code: s.code, brand: BRAND_NAME, techName: s.techName, lang: s.lang, linkExpiresAt: s.linkExpiresAt, terms });
+  res.json({ code: s.code, brand: BRAND_NAME, techName: s.techName, lang: s.lang, linkExpiresAt: s.linkExpiresAt, terms, cobrowse: cobrowse.enabled });
 });
 
 app.post('/api/s/:code/accept', lookupLimiter, (req, res) => {
@@ -480,7 +502,7 @@ app.post('/api/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/me', requireTech, (req, res) => res.json({ user: req.tech.user, name: req.tech.name, brand: BRAND_NAME }));
+app.get('/api/me', requireTech, (req, res) => res.json({ user: req.tech.user, name: req.tech.name, brand: BRAND_NAME, cobrowse: cobrowse.enabled }));
 
 app.post('/api/sessions', requireTech, (req, res) => {
   const b = req.body || {};
@@ -501,6 +523,7 @@ app.post('/api/sessions', requireTech, (req, res) => {
     clientTokenHash: null,
     sharing: null,
     pipOpen: false,
+    cb: null,
     ws: { tech: null, client: null },
   };
   sessions.set(s.code, s);
@@ -605,6 +628,7 @@ function handleJoin(ws, m) {
     ws.role = 'tech';
     if (prev && prev !== ws) prev.close(4001, 'replaced');
     send(ws, { t: 'joined', role: 'tech', session: techView(s) });
+    cobrowse.onJoin(ws, s);
     send(s.ws.client, { t: 'peer', role: 'tech', present: true, techName: ws.techUser.name });
   } else if (m.role === 'client') {
     if (!s || sessionError(s)) return ws.close(4004, sessionError(s) || 'not_found');
@@ -615,6 +639,7 @@ function handleJoin(ws, m) {
     ws.role = 'client';
     if (prev && prev !== ws) prev.close(4001, 'replaced');
     send(ws, { t: 'joined', role: 'client', techPresent: !!s.ws.tech, techName: s.techName });
+    cobrowse.onJoin(ws, s);
     send(s.ws.tech, { t: 'peer', role: 'client', present: true, client: clientInfo(s) });
     audit('client_connected', { code: s.code, clientName: s.accepted?.name, ip: ws.ip });
   } else {
@@ -627,6 +652,7 @@ function handleMessage(ws, m) {
   if (s.status === 'ended') return;
   const isTech = ws.role === 'tech';
   const other = isTech ? s.ws.client : s.ws.tech;
+  if (m.t.startsWith('cb-')) return cobrowse.handle(ws, s, m, isTech);
 
   switch (m.t) {
     case 'share': {
@@ -675,6 +701,7 @@ function handleClose(ws) {
     if (s.sharing && s.status !== 'ended') audit('sharing_stopped', { code: s.code, reason: 'disconnected' });
     s.sharing = null;
     s.pipOpen = false;
+    cobrowse.onClientLeft(s);
     send(s.ws.tech, { t: 'peer', role: 'client', present: false });
   } else if (ws.role === 'tech' && s.ws.tech === ws) {
     s.ws.tech = null;

@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
-COPY server.js ./
+COPY server.js cobrowse.js ./
 COPY public ./public
 COPY terms ./terms
 

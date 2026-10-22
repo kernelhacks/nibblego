@@ -1,7 +1,7 @@
 {
   "name": "nibble-assist",
   "version": "1.0.0",
-  "description": "Soporte remoto solo visual por navegador: términos, compartir pantalla y resaltado en vivo.",
+  "description": "Soporte remoto por navegador: términos, compartir pantalla, resaltado en vivo y navegador compartido con control opcional.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,10 +10,11 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.22.3",
+    "puppeteer-core": "25.12.0",
     "ws": "^8.22.0"
   },
   "private": true,
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   }
 }

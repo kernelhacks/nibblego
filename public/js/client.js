@@ -1,4 +1,5 @@
 import { drawScene, annBBox, viewportFor, pruneExpired, sanitizeAnn } from './annotate.js';
+import { CobrowseView } from './cobrowse-view.js';
 
 // ---------------------------------------------------------------------------
 // Textos
@@ -25,7 +26,7 @@ const STR = {
     errNetwork: 'No se pudo conectar. Revisa tu conexión a internet e inténtalo de nuevo.',
     retry: 'Reintentar',
     termsTitle: 'Sesión de soporte con {tech}',
-    termsLede: '{tech} podrá ver solo lo que tú elijas compartir y señalarte dónde hacer clic. No puede mover tu mouse ni escribir en tu equipo.',
+    termsLede: '{tech} podrá ver solo lo que tú elijas compartir y señalarte dónde hacer clic. No puede mover tu mouse ni escribir en tu equipo. Si usas el navegador compartido, tú decides si le das permiso para usarlo.',
     demoAlt: 'Ejemplo: tu técnico resalta un botón en tu pantalla para indicarte dónde hacer clic.',
     demoCaption: 'Haz clic aquí',
     factChoose: 'Tú eliges qué compartir: toda la pantalla, una ventana o una pestaña.',
@@ -67,6 +68,40 @@ const STR = {
     stoppedToast: 'Dejaste de compartir tu pantalla.',
     endedTitle: 'Sesión finalizada',
     ended: 'Ya no se está compartiendo tu pantalla. Puedes cerrar esta pestaña.',
+    cbOpen: 'Usar el navegador compartido',
+    cbOpenShort: 'Navegador compartido',
+    cbReturn: 'Volver al navegador compartido',
+    cbOpenHint: 'Abre páginas web en un navegador seguro que {tech} ve contigo. Si quieres, puedes darle el control para que haga los pasos por ti.',
+    cbTitle: 'Navegador compartido',
+    cbSub: '{tech} ve este navegador contigo, pero no el resto de tu equipo.',
+    cbSubControl: '{tech} puede usar este navegador. Tú también puedes seguir usándolo.',
+    cbGrant: 'Dar el control a {tech}',
+    cbRevoke: 'Quitar el control',
+    cbBack: 'Volver',
+    cbClose: 'Cerrar navegador',
+    cbControlOn: '{tech} tiene el control de este navegador. Puedes quitárselo cuando quieras.',
+    cbRequest: '{tech} te pide el control del navegador compartido para hacer los pasos por ti.',
+    cbRequestToast: '{tech} te pide el control del navegador compartido. Ábrelo para responder.',
+    cbAllow: 'Permitir',
+    cbDeny: 'Ahora no',
+    cbNavBack: 'Atrás',
+    cbNavForward: 'Adelante',
+    cbNavReload: 'Recargar',
+    cbUrlLabel: 'Dirección web',
+    cbUrlPlaceholder: 'Escribe una dirección, por ejemplo google.com',
+    cbGo: 'Ir',
+    cbStarting: 'Abriendo el navegador…',
+    cbLoading: 'Cargando la página…',
+    cbHint: 'Úsalo como cualquier navegador: haz clic, escribe y desplázate. Las descargas y la subida de archivos no están disponibles. {tech} ve todo lo que escribas aquí, incluidas las contraseñas.',
+    cbBusy: 'El navegador compartido está ocupado ahora mismo. Inténtalo de nuevo en unos minutos.',
+    cbUnavailable: 'No se pudo abrir el navegador compartido. Inténtalo de nuevo.',
+    cbUpload: 'Subir archivos no está disponible en el navegador compartido.',
+    cbDialog: 'La página mostró un aviso: {text}',
+    cbBadUrl: 'Esa dirección no es válida. Escribe una dirección web, por ejemplo google.com.',
+    cbNavFailed: 'No se pudo abrir esa página. Revisa la dirección o inténtalo más tarde.',
+    cbBlocked: 'Esa dirección está bloqueada por seguridad: el navegador compartido no puede abrir redes privadas ni direcciones internas.',
+    cbUnreachable: 'No se pudo abrir esa página. Puede que no esté disponible o que sea una dirección interna, que está bloqueada por seguridad.',
+    cbClosedToast: 'Se cerró el navegador compartido.',
   },
   en: {
     pageTitle: 'Remote support · {brand}',
@@ -89,7 +124,7 @@ const STR = {
     errNetwork: 'Couldn’t connect. Check your internet connection and try again.',
     retry: 'Try again',
     termsTitle: 'Support session with {tech}',
-    termsLede: '{tech} will only see what you choose to share and can point to where you should click. They can’t move your mouse or type on your computer.',
+    termsLede: '{tech} will only see what you choose to share and can point to where you should click. They can’t move your mouse or type on your computer. If you use the shared browser, you decide whether to let them use it.',
     demoAlt: 'Example: your technician highlights a button on your screen to show you where to click.',
     demoCaption: 'Click here',
     factChoose: 'You choose what to share: your whole screen, one window, or one tab.',
@@ -131,6 +166,40 @@ const STR = {
     stoppedToast: 'You stopped sharing your screen.',
     endedTitle: 'Session ended',
     ended: 'Your screen is no longer being shared. You can close this tab.',
+    cbOpen: 'Use the shared browser',
+    cbOpenShort: 'Shared browser',
+    cbReturn: 'Back to the shared browser',
+    cbOpenHint: 'Open web pages in a secure browser that {tech} sees with you. If you like, you can give them control so they can do the steps for you.',
+    cbTitle: 'Shared browser',
+    cbSub: '{tech} sees this browser with you, but not the rest of your computer.',
+    cbSubControl: '{tech} can use this browser. You can keep using it too.',
+    cbGrant: 'Give {tech} control',
+    cbRevoke: 'Take back control',
+    cbBack: 'Back',
+    cbClose: 'Close browser',
+    cbControlOn: '{tech} has control of this browser. You can take it back at any time.',
+    cbRequest: '{tech} is asking for control of the shared browser to do the steps for you.',
+    cbRequestToast: '{tech} is asking for control of the shared browser. Open it to respond.',
+    cbAllow: 'Allow',
+    cbDeny: 'Not now',
+    cbNavBack: 'Back',
+    cbNavForward: 'Forward',
+    cbNavReload: 'Reload',
+    cbUrlLabel: 'Web address',
+    cbUrlPlaceholder: 'Type an address, for example google.com',
+    cbGo: 'Go',
+    cbStarting: 'Opening the browser…',
+    cbLoading: 'Loading the page…',
+    cbHint: 'Use it like any browser: click, type, and scroll. Downloads and file uploads aren’t available. {tech} sees everything you type here, including passwords.',
+    cbBusy: 'The shared browser is busy right now. Please try again in a few minutes.',
+    cbUnavailable: 'The shared browser couldn’t be opened. Please try again.',
+    cbUpload: 'File uploads aren’t available in the shared browser.',
+    cbDialog: 'The page showed a message: {text}',
+    cbBadUrl: 'That address isn’t valid. Type a web address, for example google.com.',
+    cbNavFailed: 'That page couldn’t be opened. Check the address or try again later.',
+    cbBlocked: 'That address is blocked for security reasons: the shared browser can’t open private networks or internal addresses.',
+    cbUnreachable: 'That page couldn’t be opened. It may be unavailable, or it may be an internal address, which is blocked for security reasons.',
+    cbClosedToast: 'The shared browser was closed.',
   },
 };
 
@@ -192,12 +261,16 @@ const st = {
   ptrAnchor: null,
   ptrHiddenAt: 0,
   pip: null,
+  cbEnabled: false,
+  cb: { open: false },
+  cbRequest: false,
 };
 
 const srcVideo = $('#src-video');
 const viewCanvas = $('#view-canvas');
 const viewVideo = $('#view-video');
 const viewCtx = viewCanvas.getContext('2d');
+const cbView = new CobrowseView($('#cb-canvas'), { send: (m) => sendMsg(m), canControl: () => !!st.cb.ready });
 
 // ---------------------------------------------------------------------------
 // i18n
@@ -228,6 +301,7 @@ function applyI18n() {
   }
   renderStatus();
   renderPipHint();
+  renderCb();
 }
 
 function setLang(l) {
@@ -336,6 +410,7 @@ async function loadSession(code) {
   st.info = await res.json();
   st.brand = st.info.brand || st.brand;
   st.techName = st.info.techName || '';
+  st.cbEnabled = !!st.info.cobrowse;
   for (const el of $$('[data-brand]')) el.textContent = st.brand;
   if (!store.get('na_lang') && STR[st.info.lang]) st.lang = st.info.lang;
 
@@ -434,6 +509,7 @@ function connectWS() {
   st.ws = ws;
   ws.onopen = () => ws.send(JSON.stringify({ t: 'join', role: 'client', code: st.code, token: st.token }));
   ws.onmessage = (e) => {
+    if (typeof e.data !== 'string') return onCbFrame(e.data);
     let m;
     try {
       m = JSON.parse(e.data);
@@ -445,6 +521,11 @@ function connectWS() {
   ws.onclose = (e) => {
     if (st.ws !== ws) return;
     st.ws = null;
+    // Se queda en la pantalla del navegador: al reconectar, el servidor manda el estado real.
+    if (st.cb.open) {
+      st.cb = { ...st.cb, ready: false };
+      renderCb();
+    }
     if (st.techPresent) {
       st.techPresent = false;
       renderStatus();
@@ -515,9 +596,28 @@ function onMessage(m) {
     case 'snapshot':
       toast(t('snapshotToast'));
       break;
+    case 'cb-state':
+      onCbState(m);
+      break;
+    case 'cb-error':
+      toast(t(m.error === 'busy' ? 'cbBusy' : 'cbUnavailable'));
+      if (st.screen === 'cobrowse' && !st.cb.open) leaveCb();
+      break;
+    case 'cb-notice': {
+      const key = { upload: 'cbUpload', dialog: 'cbDialog', bad_url: 'cbBadUrl', nav_failed: 'cbNavFailed', blocked: 'cbBlocked', unreachable: 'cbUnreachable' }[m.kind];
+      if (key) toast(t(key).replace('{text}', m.text || ''));
+      break;
+    }
+    case 'cb-control-request':
+      if (!st.cb.open || st.cb.control) break;
+      st.cbRequest = true;
+      if (st.screen !== 'cobrowse') toast(t('cbRequestToast'));
+      renderCb();
+      break;
     case 'ended':
       st.ended = true;
       stopShare();
+      onCbState({ open: false }, true);
       show('ended');
       break;
   }
@@ -995,6 +1095,86 @@ function closePip() {
   }
   renderPipHint();
 }
+
+// ---------------------------------------------------------------------------
+// Navegador compartido
+// ---------------------------------------------------------------------------
+function onCbFrame(blob) {
+  if (!st.cb.open) return;
+  cbView.frame(blob);
+  $('#cb-empty').hidden = true;
+}
+
+function onCbState(m, silent) {
+  const wasOpen = st.cb.open;
+  st.cb = m;
+  if (!m.open) {
+    st.cbRequest = false;
+    cbView.clear();
+    if (wasOpen && !silent) toast(t('cbClosedToast'));
+    if (st.screen === 'cobrowse') leaveCb();
+  }
+  if (m.control) st.cbRequest = false;
+  renderCb();
+}
+
+function leaveCb() {
+  if (!st.ended) show(st.sharing ? 'sharing' : 'ready');
+}
+
+function openCb() {
+  if (!st.cbEnabled) return;
+  if (!st.cb.open) {
+    sendMsg({ t: 'cb-open' });
+    $('#cb-empty').hidden = false;
+  }
+  show('cobrowse');
+  $('#cb-canvas').focus({ preventScroll: true });
+}
+
+function renderCb() {
+  for (const el of $$('[data-cb-entry]')) el.hidden = !st.cbEnabled;
+  for (const el of $$('[data-cb-open-label]')) el.textContent = t(st.cb.open ? 'cbReturn' : el.hasAttribute('data-short') ? 'cbOpenShort' : 'cbOpen');
+  const cb = st.cb;
+  const url = $('#cb-url');
+  url.placeholder = t('cbUrlPlaceholder');
+  if (document.activeElement !== url) url.value = cb.url && cb.url !== 'about:blank' ? cb.url : '';
+  $('[data-cb-nav="back"]').disabled = !cb.canBack;
+  $('[data-cb-nav="forward"]').disabled = !cb.canForward;
+  const ctl = $('#cb-control-btn');
+  ctl.textContent = t(cb.control ? 'cbRevoke' : 'cbGrant');
+  ctl.classList.toggle('danger', !!cb.control);
+  ctl.disabled = !cb.ready;
+  $('#cb-sub').textContent = t(cb.loading ? 'cbLoading' : cb.control ? 'cbSubControl' : 'cbSub');
+  $('#cb-banner').hidden = !cb.control;
+  $('#cb-banner-text').textContent = t('cbControlOn');
+  $('#cb-request').hidden = !st.cbRequest;
+  $('#cb-request-text').textContent = t('cbRequest');
+  $('#cb-empty-text').textContent = t('cbStarting');
+  if (!cbView.hasImage) $('#cb-empty').hidden = false;
+}
+
+for (const b of $$('[data-cb-open]')) b.addEventListener('click', openCb);
+$('#cb-back-btn').addEventListener('click', leaveCb);
+$('#cb-close-btn').addEventListener('click', () => sendMsg({ t: 'cb-close' }));
+$('#cb-control-btn').addEventListener('click', () => sendMsg({ t: 'cb-control', grant: !st.cb.control }));
+$('#cb-request-yes').addEventListener('click', () => {
+  st.cbRequest = false;
+  sendMsg({ t: 'cb-control', grant: true });
+  renderCb();
+});
+$('#cb-request-no').addEventListener('click', () => {
+  st.cbRequest = false;
+  renderCb();
+});
+for (const b of $$('[data-cb-nav]')) b.addEventListener('click', () => sendMsg({ t: 'cb-nav', action: b.dataset.cbNav }));
+$('#cb-url-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const url = $('#cb-url').value.trim();
+  if (!url) return;
+  sendMsg({ t: 'cb-nav', action: 'go', url });
+  $('#cb-canvas').focus({ preventScroll: true });
+});
 
 // ---------------------------------------------------------------------------
 // Arranque
