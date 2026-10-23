@@ -50,7 +50,7 @@ Cómo está aislado:
 - Cada sesión usa un perfil temporal propio. Ninguna sesión ve cookies de otra.
 - Cada navegador abierto usa unos 150–300 MB de RAM. `COBROWSE_MAX` limita cuántos hay a la vez (3 por defecto).
 
-Para desactivarlo, deja `COBROWSE_URL` vacío y quita el servicio `browser` del compose.
+Para desactivarlo, pon `COBROWSE_URL=off` y quita el servicio `browser` del compose.
 
 ## Compatibilidad del lado del cliente
 
