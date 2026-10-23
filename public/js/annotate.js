@@ -353,6 +353,11 @@ export function drawScene(o) {
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(source, T.ox, T.oy, sw * T.s, sh * T.s);
   }
+  // Zonas de la imagen que no se muestran (p. ej. la propia ventana flotante), en px de la fuente.
+  if (o.mask?.length) {
+    ctx.fillStyle = o.maskColor || '#2A3644';
+    for (const m of o.mask) ctx.fillRect(T.ox + m.x * T.s, T.oy + m.y * T.s, m.w * T.s, m.h * T.s);
+  }
   // Unidad de trazo: proporcional al tamaño mostrado, con límites legibles.
   const u = clamp(sw * T.s * 0.0028, 2 * dpr, 7 * dpr);
   const list = draft ? anns.concat([draft]) : anns;

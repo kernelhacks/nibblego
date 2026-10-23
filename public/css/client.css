@@ -193,6 +193,16 @@ input[type="text"]:focus-visible { outline-offset: 0; border-color: var(--focus)
   .share-actions .btn { flex: 1 1 auto; }
 }
 
+/* Cortina sobre la vista previa al compartir toda la pantalla */
+.mirror-curtain { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: var(--stage); color: #E8EDF2; text-align: center; }
+.mc-box { max-width: 34em; display: grid; justify-items: center; gap: 14px; }
+.mc-box svg { width: 56px; height: 56px; fill: none; stroke: #4FD1A5; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.mc-box h2 { font-size: 1.35rem; color: #fff; }
+.mc-box p { color: #C7D2DD; }
+.mc-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.mirror-curtain .btn.danger { background: transparent; color: #FF9AA8; border-color: #6B3440; }
+.link-btn { border: 0; background: none; padding: 4px; color: #8AB4FF; font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
+
 /* ---- Navegador compartido ---- */
 .cb-entry { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
 .cb-head {

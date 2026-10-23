@@ -196,6 +196,19 @@
       <div class="stage" id="stage">
         <canvas id="view-canvas"></canvas>
         <video id="view-video" muted playsinline autoplay hidden></video>
+        <!-- Pantalla completa: tapa la vista previa para que no se vea un espejo infinito -->
+        <div class="mirror-curtain" id="mirror-curtain" hidden>
+          <div class="mc-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="m9 10.5 2 2 4-4"/></svg>
+            <h2 id="mc-title"></h2>
+            <p id="mc-body"></p>
+            <div class="mc-actions">
+              <button class="btn primary" type="button" id="mc-pip"></button>
+              <button class="btn danger" type="button" id="mc-stop" data-i18n="stopBtn">Dejar de compartir</button>
+            </div>
+            <button class="link-btn" type="button" id="mc-show" data-i18n="mirrorShow"></button>
+          </div>
+        </div>
       </div>
       <p class="hint" id="pip-hint"></p>
     </section>

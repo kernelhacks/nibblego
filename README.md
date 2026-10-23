@@ -126,7 +126,7 @@ Si defines `WEBHOOK_URL`, cada evento se envía también por POST. Sirve, por ej
 ## Limitaciones conocidas
 
 - Las sesiones viven en memoria. Si reinicias el contenedor se cierran las sesiones en curso, aunque el registro se conserva. Pensado para una sola instancia.
-- Si el cliente comparte la **pantalla completa**, la ventana flotante aparece dentro de la imagen como un pequeño reflejo en una esquina. Compartir solo la ventana de la aplicación lo evita.
+- Si el cliente comparte la **pantalla completa**, la página de soporte oculta su vista previa tras un aviso, para que no vea su pantalla repetida en efecto espejo. Puede mostrarla con "Mostrar la vista previa de todos modos". En Chrome y Edge, la ventana flotante tapa la zona donde ella misma aparece; con dos monitores o escalas raras no tapa nada, para no ocultar contenido por error. Tú sigues viendo la pantalla completa, incluida la ventana flotante.
 - Las marcas aparecen en la ventana flotante, no directamente sobre el escritorio del cliente. Un navegador no puede dibujar fuera de sus ventanas.
 - No hay audio: la conversación va por teléfono.
 - No se pueden dibujar marcas sobre el navegador compartido (solo sobre la pantalla compartida).

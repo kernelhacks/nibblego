@@ -1,5 +1,6 @@
 import { drawScene, annBBox, viewportFor, pruneExpired, sanitizeAnn } from './annotate.js';
 import { CobrowseView } from './cobrowse-view.js';
+import { mayMirror, pipMaskRect } from './mirror.js';
 
 // ---------------------------------------------------------------------------
 // Textos
@@ -63,6 +64,10 @@ const STR = {
     pipStatus: '{tech} te está guiando',
     pipWaiting: 'Esperando a {tech}…',
     pipStop: 'Detener',
+    mirrorTitle: 'Estás compartiendo toda tu pantalla con {tech}',
+    mirrorBodyPip: 'Para que no veas tu pantalla repetida aquí, ocultamos la vista previa. Ve a la ventana donde necesitas ayuda: las indicaciones de {tech} aparecerán en la ventana flotante.',
+    mirrorBody: 'Para que no veas tu pantalla repetida aquí, ocultamos la vista previa. Ve a la ventana donde necesitas ayuda: {tech} te irá guiando.',
+    mirrorShow: 'Mostrar la vista previa de todos modos',
     snapshotToast: '{tech} tomó una captura de tu pantalla compartida para documentar el caso.',
     techLeftToast: '{tech} se desconectó. Puede volver en cualquier momento.',
     stoppedToast: 'Dejaste de compartir tu pantalla.',
@@ -173,6 +178,10 @@ const STR = {
     pipStatus: '{tech} is guiding you',
     pipWaiting: 'Waiting for {tech}…',
     pipStop: 'Stop',
+    mirrorTitle: 'You’re sharing your whole screen with {tech}',
+    mirrorBodyPip: 'So you don’t see your screen repeated here, we’ve hidden the preview. Go to the window where you need help: {tech}’s directions will appear in the floating window.',
+    mirrorBody: 'So you don’t see your screen repeated here, we’ve hidden the preview. Go to the window where you need help: {tech} will guide you.',
+    mirrorShow: 'Show the preview anyway',
     snapshotToast: '{tech} took a screenshot of your shared screen to document the case.',
     techLeftToast: '{tech} disconnected. They can rejoin at any time.',
     stoppedToast: 'You stopped sharing your screen.',
@@ -286,6 +295,8 @@ const st = {
   ptrAnchor: null,
   ptrHiddenAt: 0,
   pip: null,
+  surface: '',
+  mirrorShow: false,
   webOnly: false,
   cbEnabled: false,
   cb: { open: false },
@@ -327,6 +338,7 @@ function applyI18n() {
   }
   renderStatus();
   renderPipHint();
+  renderCurtain();
   renderCb();
 }
 
@@ -413,7 +425,32 @@ function renderPipHint() {
   btn.textContent = t(st.pip ? 'pipShow' : 'pipOpen');
   btn.classList.toggle('primary', !st.pip);
   hint.textContent = t(st.pip ? 'pipHintOpen' : 'pipHint');
+  renderCurtain();
 }
+
+// Al compartir toda la pantalla, la vista previa se vería dentro de sí misma (espejo
+// infinito). La tapamos sin quitarla: Safari y Firefox la usan para su imagen en imagen.
+const curtainOn = () => st.sharing && mayMirror(st.surface) && !st.mirrorShow;
+function renderCurtain() {
+  const on = curtainOn();
+  $('#mirror-curtain').hidden = !on;
+  if (!on) return;
+  const hasPip = DOC_PIP || VIDEO_PIP;
+  $('#mc-title').textContent = t('mirrorTitle');
+  $('#mc-body').textContent = t(hasPip ? 'mirrorBodyPip' : 'mirrorBody');
+  const pip = $('#mc-pip');
+  pip.hidden = !hasPip;
+  pip.textContent = t(st.pip ? 'pipShow' : 'pipOpen');
+}
+$('#mc-pip').addEventListener('click', () => openPip().catch((e) => console.warn('PiP', e)));
+$('#mc-stop').addEventListener('click', () => {
+  stopShare();
+  toast(t('stoppedToast'));
+});
+$('#mc-show').addEventListener('click', () => {
+  st.mirrorShow = true;
+  renderCurtain();
+});
 
 const formatCode = (c) => c.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
 
@@ -723,6 +760,8 @@ async function startShare() {
   });
   st.stream = stream;
   st.sharing = true;
+  st.mirrorShow = false;
+  st.surface = track.getSettings?.().displaySurface || 'unknown';
   st.focus = null;
   st.focusTarget = null;
   srcVideo.srcObject = stream;
@@ -746,6 +785,11 @@ srcVideo.addEventListener('resize', () => {
 function sendShareState() {
   if (!st.stream) return;
   const s = st.stream.getVideoTracks()[0]?.getSettings?.() || {};
+  // Con "cambiar lo que se comparte" la superficie puede cambiar a mitad de sesión.
+  if ((s.displaySurface || 'unknown') !== st.surface) {
+    st.surface = s.displaySurface || 'unknown';
+    renderCurtain();
+  }
   sendMsg({
     t: 'share',
     sharing: true,
@@ -767,6 +811,7 @@ function stopShare() {
   closePip();
   stopLoops();
   if (wasSharing) sendMsg({ t: 'share', sharing: false });
+  renderCurtain();
   if (!st.ended && st.screen === 'sharing') show('ready');
 }
 
@@ -968,7 +1013,7 @@ function stepFocus(now) {
   for (const key of ['x', 'y', 'w', 'h']) st.focus[key] += (target[key] - st.focus[key]) * k;
 }
 
-function renderTo(ctx, cw, ch, dpr, source, now) {
+function renderTo(ctx, cw, ch, dpr, source, now, mask) {
   const [sw, sh] = srcDims();
   pruneExpired(st.anns, now);
   stepFocus(now);
@@ -987,7 +1032,22 @@ function renderTo(ctx, cw, ch, dpr, source, now) {
     now,
     dpr,
     bg: '#202A36',
+    mask,
   });
+}
+
+// Dónde está la ventana flotante dentro de la captura de pantalla completa (o null).
+function pipSelfMask(win) {
+  if (!mayMirror(st.surface) || st.surface === 'unknown') return null;
+  const [sw, sh] = srcDims();
+  const s = win.screen;
+  const r = pipMaskRect({
+    sw,
+    sh,
+    screen: { width: s.width, height: s.height, left: s.left ?? s.availLeft ?? 0, top: s.top ?? s.availTop ?? 0 },
+    win: { x: win.screenX, y: win.screenY, w: win.outerWidth, h: win.outerHeight },
+  });
+  return r ? [r] : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -1028,7 +1088,7 @@ function sizeCanvasToBox(canvas, dpr) {
 function drawPage(now) {
   if (!st.sharing) return;
   if (DOC_PIP) {
-    if (document.hidden) return;
+    if (document.hidden || curtainOn()) return;
     const dpr = window.devicePixelRatio || 1;
     sizeCanvasToBox(viewCanvas, dpr);
     renderTo(viewCtx, viewCanvas.width, viewCanvas.height, dpr, srcVideo, now);
@@ -1118,7 +1178,7 @@ async function openPip() {
       win.requestAnimationFrame(tick);
       const dpr = win.devicePixelRatio || 1;
       sizeCanvasToBox(canvas, dpr);
-      renderTo(st.pip.ctx, canvas.width, canvas.height, dpr, video, performance.now());
+      renderTo(st.pip.ctx, canvas.width, canvas.height, dpr, video, performance.now(), pipSelfMask(win));
     };
     win.requestAnimationFrame(tick);
     setViewMode(st.viewMode);
